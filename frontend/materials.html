@@ -12,12 +12,24 @@
 <body data-page="materials">
 <header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
 <main id="main">
-  <section class="page-head"><div class="container">
-    <h1>Materials</h1>
-    <p class="lead">Three materials, five properties each. Learn what the numbers mean, then bend the same beam in all three.</p>
-  </div></section>
+  <section class="page-head"><div class="container"><div class="ph-grid">
+    <div class="ph-copy">
+      <p class="eyebrow">Reference</p>
+      <h1>Materials</h1>
+      <p class="lead">Three materials, five properties each. Learn what the numbers mean, then bend the same beam in all three.</p>
+    </div>
+    <aside class="ph-card deco" aria-hidden="true"><h2 class="ph-card-h">Three materials</h2>
+      <svg class="ph-art" viewBox="0 0 420 170" fill="none" stroke="#124f4c" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" focusable="false">
+        <rect x="30" y="40" width="80" height="60" fill="#efe3c4"/><path d="M30 60H110M30 80H110" stroke-width="1" opacity=".5"/>
+        <path d="M170 40H250V54H220V86H250V100H170V86H200V54H170Z" fill="#efe3c4"/>
+        <rect x="310" y="40" width="80" height="60" fill="#efe3c4"/><circle cx="330" cy="58" r="2.5"/><circle cx="352" cy="78" r="2"/><circle cx="372" cy="56" r="3"/><circle cx="340" cy="88" r="2"/>
+        <text x="70" y="128" text-anchor="middle">Timber</text><text x="210" y="128" text-anchor="middle">Steel</text><text x="350" y="128" text-anchor="middle">Concrete</text>
+        <text class="t2" x="70" y="148" text-anchor="middle" stroke="none">E 11 GPa</text><text class="t2" x="210" y="148" text-anchor="middle" stroke="none">E 200 GPa</text><text class="t2" x="350" y="148" text-anchor="middle" stroke="none">E 25 GPa</text>
+      </svg>
+    </aside>
+  </div></div></section>
 
-  <section class="container section" aria-labelledby="m-h">
+  <section class="container section tight" aria-labelledby="m-h">
     <h2 id="m-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">1</span>The three materials</h2>
     <noscript><p>The material cards, bars and sliders need JavaScript.</p></noscript>
     <div class="grid cols-3 stagger" id="mat-cards" data-reveal data-reveal-children></div>
