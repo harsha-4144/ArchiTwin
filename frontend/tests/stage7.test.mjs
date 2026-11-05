@@ -42,7 +42,15 @@ test('failing beam message says what to change', () => {
   assert.match(buildingMessage(c, { material: 'timber' }), /Try a deeper beam/);
 });
 test('about content has all required parts', () => {
-  assert.ok(ABOUT.source.some(s => /not yet from a cited source/.test(s)) && ABOUT.limitations.length && ABOUT.professional);
+  // Source: must say where the numbers come from and that they are not yet cited/verified.
+  assert.ok(ABOUT.source.length >= 2);
+  assert.ok(ABOUT.source.some(s => /teaching/i.test(s)), 'source states teaching values');
+  assert.ok(ABOUT.source.some(s => /not yet from a cited source/.test(s)), 'source states not yet cited');
+  // Assumptions: every required topic must be present with real text.
+  const have = ABOUT.assumptions.map(a => a[0]);
+  for (const k of ['beam', 'load', 'support', 'self', 'slab', 'sizes', 'limit']) assert.ok(have.includes(k), `assumption ${k}`);
+  for (const [, text] of ABOUT.assumptions) assert.ok(typeof text === 'string' && text.length > 20);
+  assert.ok(ABOUT.limitations.length >= 3 && ABOUT.professional);
   assert.match(ABOUT_STATEMENT, /Simplified model, no live-data link/);
   const ids = ABOUT.assumptions.map(a => a[0]);
   for (const k of ['results', 'analysis', 'materials', 'cause', 'versions']) for (const i of ABOUT_CONTEXT[k].ids) assert.ok(ids.includes(i), `${k}:${i}`);
