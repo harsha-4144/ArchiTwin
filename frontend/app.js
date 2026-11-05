@@ -41,12 +41,11 @@ function checkbox(label, get, set) {
 }
 function sideTable(title, key, max) {
   const t = el('div', { class: 'sides' });
-  t.append(el('span', { class: 'h', text: title }), el('span', { class: 'h', text: '' }), el('span', { class: 'h', text: '' }));
   SIDES.forEach(s => {
     const i = el('input', { type: 'number', min: 0, max, step: 1, 'aria-label': `${title} ${s}` });
     i.value = params[key][s];
     i.addEventListener('change', () => { params[key][s] = Number(i.value); update(); });
-    t.append(el('span', { text: s[0].toUpperCase() + s.slice(1) }), i, el('span'));
+    t.append(el('span', { text: s[0].toUpperCase() + s.slice(1) }), i);
   });
   return t;
 }
@@ -116,9 +115,12 @@ function showResults() {
   $('resbody').replaceChildren(kv([
     ['Beams passing', `${check.passCount} of ${check.beams.length}`, 'pass'],
     ['Beams failing', String(check.failCount), check.failCount ? 'fail' : ''],
-    ['Worst deflection', `${fmt(check.worstDeflectionMm)} mm` + (w ? ` (limit ${fmt(w.limitMm)} mm)` : ''), w && !w.pass ? 'fail' : ''],
-    ['Worst beam', w ? `${w.id}: ${w.pass ? 'PASS' : 'FAIL'}` : 'none', w && !w.pass ? 'fail' : ''],
-    ['Total weight', `${fmt(t.weightKN, 1)} kN (${fmt(t.weightKg, 0)} kg)`],
+    ['Worst deflection', `${fmt(check.worstDeflectionMm)} mm`, w && !w.pass ? 'fail' : ''],
+    ['Allowed (L/250)', w ? `${fmt(w.limitMm)} mm` : 'none'],
+    ['Worst beam', w ? w.id.replace(/^beam-/, '') : 'none'],
+    ['Worst beam result', w ? (w.pass ? 'PASS' : 'FAIL') : 'none', w && !w.pass ? 'fail' : 'pass'],
+    ['Total weight', `${fmt(t.weightKN, 1)} kN`],
+    ['Total mass', `${fmt(t.weightKg, 0)} kg`],
     ['Estimated cost', inr(t.cost)],
   ]));
 }
@@ -136,10 +138,10 @@ function showDetails() {
   const c = selected, r = componentWeightCost(c, params.material);
   const rows = [['Type', c.type + (c.type === 'wall' && c.side ? ` (${c.side})` : '')], ['ID', c.id], ['Size', sizeText(c)],
     ['Material', MATERIALS[r.material].name + (c.type === 'slab' ? ' (slabs are always concrete)' : '')],
-    ['Volume', `${fmt(r.volume, 4)} m³`], ['Weight', `${fmt(r.weightKN)} kN (${fmt(r.weightKg, 1)} kg)`], ['Cost', inr(r.cost)]];
+    ['Volume', `${fmt(r.volume, 4)} m³`], ['Weight', `${fmt(r.weightKN)} kN`], ['Mass', `${fmt(r.weightKg, 1)} kg`], ['Cost', inr(r.cost)]];
   if (c.type === 'beam') {
     const b = check.beams.find(x => x.id === c.id);
-    rows.push(['Deflection', `${fmt(b.deflectionMm)} mm (limit ${fmt(b.limitMm)} mm)`], ['Share of limit', `${fmt(b.ratio * 100, 0)}%`], ['Result', b.pass ? 'PASS' : 'FAIL', b.pass ? 'pass' : 'fail']);
+    rows.push(['Deflection', `${fmt(b.deflectionMm)} mm`], ['Allowed (L/250)', `${fmt(b.limitMm)} mm`], ['Share of limit', `${fmt(b.ratio * 100, 0)}%`], ['Result', b.pass ? 'PASS' : 'FAIL', b.pass ? 'pass' : 'fail']);
   }
   box.replaceChildren(kv(rows));
 }

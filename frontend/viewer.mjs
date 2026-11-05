@@ -26,7 +26,7 @@ export function createViewer(container, onPick) {
   const sun = new THREE.DirectionalLight(0xffffff, 1.1);
   sun.position.set(8, 14, 6);
   scene.add(sun);
-  const grid = new THREE.GridHelper(60, 60, 0xcdbf9f, 0xe2d8c0);
+  const grid = new THREE.GridHelper(60, 60, 0x8f8264, 0xc4b794);
   scene.add(grid);
 
   const unit = new THREE.BoxGeometry(1, 1, 1);            // shared by all box parts

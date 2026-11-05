@@ -6,13 +6,16 @@ params keys (validated only if present, others such as walls, roof, windows pass
   beam_type simply_supported|cantilever, beam_b, beam_h, load, walls, roof, windows ...
 summary keys (stored as sent): pass/fail counts, worst deflection, total weight, total cost.
 """
+import math
 import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
@@ -25,6 +28,13 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="ADT API", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def bad_request(_: Request, exc: RequestValidationError):
+    # Echoing the input back would crash on NaN/inf, so send only location and message.
+    return JSONResponse(status_code=422, content={"detail": [
+        {"loc": [str(x) for x in e.get("loc", ())], "msg": str(e.get("msg", "invalid"))} for e in exc.errors()]})
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRONTEND = os.path.join(ROOT, "frontend")
 
@@ -35,7 +45,7 @@ POSITIVE = ("roof_pitch", "beam_b", "beam_h", "load")  # reject negatives only
 
 
 def _num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 
 def validate_params(p: Dict[str, Any], materials) -> None:
@@ -66,6 +76,8 @@ class DesignIn(BaseModel):
         con.close()
         validate_params(self.params, mats)
         for k, v in self.summary.items():
+            if isinstance(v, float) and not math.isfinite(v):
+                raise ValueError(f"summary.{k} must be a finite number")
             if _num(v) and v < 0:
                 raise ValueError(f"summary.{k} must not be negative")
         return self

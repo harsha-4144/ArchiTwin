@@ -32,3 +32,7 @@
 ### Stage 4: Viewer and look — gate PASS
 - Real Chromium (Playwright, kept outside the project) at 1366x768 and 390px: no console errors; floors/bays/span/roof/material changes rebuild the model; clicking a 5 m concrete 250x350 beam showed volume 0.4375 m3, weight 10.30 kN, cost ₹8,750, deflection 4.40 mm (matches hand calc). Node 21/21, pytest 17.
 - Known gaps: in Architecture layer walls/roof catch clicks (use Structure layer for hidden parts); on mobile 3D view comes first so badge order reads 2,1,3.
+### M1 reviewers (code, math, spec, design)
+- math: PASS. spec: no missing items; flagged `compareMaterials`/`diffResults` (calc.mjs) and Expected Results panel as early stage 5/6 content — kept (needed later, panel is in plan layout).
+- code: non-finite numbers gave 500 -> fixed (422 + tests); run.sh printed "running" on bind failure -> fixed (port check). design: 6 layout issues (hidden panel scroll, wrapped values, grid gap, small 3D view, low-contrast text, mobile badge order) -> fixed.
+- Commit "Review fixes M1". pytest 29, node 21.

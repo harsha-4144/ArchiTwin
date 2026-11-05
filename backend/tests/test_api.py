@@ -1,3 +1,4 @@
+import json
 import pytest
 from fastapi.testclient import TestClient
 
@@ -55,3 +56,14 @@ def test_persists_across_restart(tmp_path, monkeypatch):
     with TestClient(app) as c:
         assert c.get(f"/designs/{i}").status_code == 200
         assert len(c.get("/materials").json()) == 3
+
+
+@pytest.mark.parametrize("raw", ["NaN", "Infinity", "-Infinity", "1e999"])
+@pytest.mark.parametrize("where", ["span_x", "load", "summary"])
+def test_rejects_non_finite(client, raw, where):
+    if where == "summary":
+        body = json.dumps(GOOD).replace('"cost": 1234', '"cost": RAW').replace("RAW", raw)
+    else:
+        body = json.dumps({**GOOD, "params": {**GOOD["params"], where: 0}}).replace(f'"{where}": 0', f'"{where}": {raw}')
+    r = client.post("/designs", content=body, headers={"content-type": "application/json"})
+    assert r.status_code == 422
