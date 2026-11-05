@@ -73,3 +73,37 @@ input[type=number]{width:60px}
 .legpf i{display:inline-block;width:12px;height:12px;border-radius:3px;margin:0 4px 0 8px;vertical-align:-1px}
 @media (max-width:900px){.sw{grid-template-columns:1fr}}
 [hidden]{display:none!important}
+
+.wide{grid-column:1/-1}
+#vname{font:inherit;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:#fff;min-width:0;flex:1 1 180px;max-width:320px}
+#versions .btn,#cmpcard .btn,#vlist button{border:1px solid var(--teal);background:var(--teal);color:#fff;border-radius:999px;padding:4px 12px;cursor:pointer;margin:0}
+#vlist button.alt{background:#fff;color:var(--teal)}
+#vlist button.del{background:#fff;color:var(--bad);border-color:var(--bad)}
+#vmsg{font-size:13px;color:var(--muted)}
+.vrow{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.vrow .nm{font-weight:600;color:var(--teal);flex:1 1 140px;min-width:0;overflow-wrap:anywhere}
+.vrow .sm{flex:3 1 220px;color:var(--muted);font-size:13px;min-width:0}
+.vrow .acts{display:flex;gap:6px;flex-wrap:wrap}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair figure{margin:0;min-width:0}
+.pair figcaption{margin-bottom:4px;font-size:14px;color:var(--teal)}
+.view2{height:340px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.view2 canvas{display:block}
+.hl-key{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.hl-key i{width:12px;height:12px;border-radius:3px;background:#ff8a00;display:inline-block}
+.etab{width:100%;border-collapse:collapse;font-size:14px}
+.etab th,.etab td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;overflow-wrap:anywhere}
+.etab th:first-child,.etab td:first-child{text-align:left}
+.etab td.chg{font-weight:600;color:var(--teal);text-align:left;white-space:nowrap}
+.etab td.chg.same{color:var(--muted)}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cols2 h3,#vcbody h3{margin:6px 0 4px;font-size:14px;color:var(--teal)}
+.plist{margin:0;padding-left:18px;font-size:14px}
+.plist li{margin:2px 0}
+#vcompare label{font-size:14px}
+@media (max-width:900px){
+  .pair,.cols2{grid-template-columns:1fr}
+  .view2{height:280px}
+  .etab{font-size:13px}
+  .etab td.chg{white-space:normal}
+}

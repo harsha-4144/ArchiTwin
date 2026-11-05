@@ -41,6 +41,15 @@ export function createViewer(container, onPick) {
     return matCache.get(k);
   };
 
+  const hiCache = new Map();   // highlighted (differs) materials, shared
+  const getHiMat = base => {
+    const k = base.uuid;
+    if (!hiCache.has(k)) { const m = base.clone(); m.emissive = new THREE.Color(0xff8a00); m.emissiveIntensity = 0.75; hiCache.set(k, m); }
+    return hiCache.get(k);
+  };
+  const hiEdgeMat = new THREE.LineBasicMaterial({ color: 0xd35400 });
+  let dirty = true;
+  controls.addEventListener('change', () => { dirty = true; });
   let group = new THREE.Group();
   scene.add(group);
   const byId = new Map();     // component id -> mesh
@@ -48,7 +57,7 @@ export function createViewer(container, onPick) {
 
   function resize() {
     const w = Math.max(1, container.clientWidth), h = Math.max(1, container.clientHeight);
-    renderer.setSize(w, h);
+    renderer.setSize(w, h); dirty = true;
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
   new ResizeObserver(resize).observe(container);
@@ -101,7 +110,8 @@ export function createViewer(container, onPick) {
 
   function setModel(b, opts = {}) {
     lastModel = b; lastOpts = opts;
-    const { layer = 'architecture', ratios = null, passFail = null } = opts;
+    const { layer = 'architecture', ratios = null, passFail = null, highlight = null } = opts;
+    dirty = true;
     scene.remove(group);
     group.traverse(o => { if (o.geometry && o.geometry !== unit && o.geometry !== edgeGeo) o.geometry.dispose(); });
     group = new THREE.Group(); scene.add(group); byId.clear();
@@ -117,12 +127,14 @@ export function createViewer(container, onPick) {
         mat = getMat(passFail[c.id] ? 0x2e9e5b : 0xd0382b);
       let mesh;
       if (c.type === 'roof' && c.roofType !== 'flat') {
-        mesh = new THREE.Mesh(roofGeometry(c, b), getMat(hex, 1));
+        mesh = new THREE.Mesh(roofGeometry(c, b), highlight && highlight.has(c.id) ? getHiMat(getMat(hex, 1)) : getMat(hex, 1));
       } else {
         mesh = new THREE.Mesh(unit, mat);
         mesh.scale.set(c.size.sx, c.size.sy, c.size.sz);
         mesh.position.set(c.position.x, c.position.y, c.position.z);
-        if (c.type !== 'wall') mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
+        const hi = highlight && highlight.has(c.id);
+        if (hi) mesh.material = getHiMat(mat);
+        if (c.type !== 'wall' || hi) mesh.add(new THREE.LineSegments(edgeGeo, hi ? hiEdgeMat : edgeMat));
       }
       mesh.userData.comp = c;
       group.add(mesh); byId.set(c.id, mesh);
@@ -134,12 +146,12 @@ export function createViewer(container, onPick) {
 
   function select(id) {
     const old = byId.get(selectedId);
-    if (old && old.material.emissive) old.material.emissive.setHex(0);
+    if (old && old.material.emissive && ![...hiCache.values()].includes(old.material) && old !== byId.get(id)) old.material.emissive.setHex(0);
     selectedId = id;
     const m = byId.get(id);
     if (!m) { selectedId = null; return; }
     // selected part gets its own material so the shared one is not tinted
-    m.material = m.material.clone(); m.material.emissive = new THREE.Color(0xd98a00); m.material.emissiveIntensity = 0.6;
+    dirty = true; m.material = m.material.clone(); m.material.emissive = new THREE.Color(0xd98a00); m.material.emissiveIntensity = 0.6;
   }
 
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -168,7 +180,11 @@ export function createViewer(container, onPick) {
     return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height };
   }
 
-  renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+  // Render only when something changed (three viewers share the page, so idle ones cost nothing).
+  renderer.setAnimationLoop(() => {
+    const moved = controls.update();
+    if (moved || dirty) { dirty = false; renderer.render(scene, camera); }
+  });
   resize();
-  return { setModel, select, resetView: () => lastModel && frame(lastModel), screenPosOf, ids: () => [...byId.keys()] };
+  return { setModel, select, resetView: () => { if (lastModel) { frame(lastModel); dirty = true; } }, screenPosOf, ids: () => [...byId.keys()] };
 }

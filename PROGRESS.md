@@ -39,3 +39,6 @@
 ### Stage 5: Analysis panel — gate PASS
 - stage5.test.mjs proves check-all failing set == beams failing beamDeflection (mixed case) and totals == sum of parts. Node 24 pass, pytest 33. Browser: timber 8x3 m config -> 6 of 12 red/green, consistent across Expected Results, list and material card; no console errors; no overflow at 390px.
 - Assumption: Analysis card has no number badge (badges 1-6 follow the mind map cards). Right column is long; design review at M2.
+### Stage 6: Versions and comparison — gate PASS
+- Saved "Original house" + "Modified steel", stopped server by PID, restarted on same DB: both listed and loadable; two-version compare table works; Original vs Modified two views with orange highlight; Cause and Effect lists every changed parameter (old -> new) and results with arrows plus words (lower/higher). Node 29, pytest 33; no console errors; no overflow at 390px.
+- Assumptions: the "original" baseline is in memory only (resets on reload; defaults to start design until "Set as original"); a material change highlights all parts; daylight indicator = window area / floor area, labelled not a simulation. Badge 8 used for the Original vs Modified card.

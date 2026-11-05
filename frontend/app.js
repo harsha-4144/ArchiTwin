@@ -1,6 +1,6 @@
 // app.js - UI wiring and display formatting only. All numbers come from calc.mjs / building.mjs.
-import { generateBuilding, DEFAULT_PARAMS, SIDES } from './building.mjs';
-import { MATERIALS, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
+import { generateBuilding, validateParams, DEFAULT_PARAMS, SIDES } from './building.mjs';
+import { MATERIALS, summarize, diffSummaries, diffParams, diffComponents, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
 
 const $ = id => document.getElementById(id);
@@ -31,6 +31,7 @@ function select(label, key, options) {
   const s = el('select', { 'aria-label': label });
   for (const [v, t] of options) s.append(el('option', { value: v, text: t }));
   s.value = params[key];
+  refreshers.push(() => { s.value = params[key]; });
   s.addEventListener('change', () => { params[key] = s.value; update(); });
   return el('div', { class: 'row' }, el('label', { text: label }), s);
 }
@@ -44,7 +45,7 @@ function sideTable(title, key, max) {
   const t = el('div', { class: 'sides' });
   SIDES.forEach(s => {
     const i = el('input', { type: 'number', min: 0, max, step: 1, 'aria-label': `${title} ${s}` });
-    i.value = params[key][s];
+    i.value = params[key][s]; refreshers.push(() => { i.value = params[key][s]; });
     i.addEventListener('change', () => { params[key][s] = Number(i.value); update(); });
     t.append(el('span', { text: s[0].toUpperCase() + s.slice(1) }), i);
   });
@@ -67,8 +68,8 @@ group('Structure', select('Material', 'material', Object.entries(MATERIALS).map(
 group('Loads', slider('Applied load', 'load', 0, 50, 1, ' kN/m'));
 
 // ---------- layers ----------
-const seg = $('layers');
-for (const [k, t] of [['structure', 'Structure'], ['architecture', 'Architecture'], ['materials', 'Materials']]) {
+const segs = [...document.querySelectorAll('#layers, .layerseg')];
+for (const seg of segs) for (const [k, t] of [['structure', 'Structure'], ['architecture', 'Architecture'], ['materials', 'Materials']]) {
   const b = el('button', { type: 'button', role: 'radio', 'data-layer': k, text: t });
   b.addEventListener('click', () => { layer = k; render(); });
   seg.append(b);
@@ -77,6 +78,7 @@ $('cmap').addEventListener('change', e => { cmap = e.target.checked; render(); }
 $('reset').addEventListener('click', () => viewer.resetView());
 
 // ---------- model ----------
+const viewerA = createViewer($('viewA'), () => {}), viewerB = createViewer($('viewB'), () => {});
 const viewer = createViewer($('view'), c => { selected = c; analysed = false; anType = null; showDetails(); showAnalysis(); showMaterials(); });
 
 function update() {
@@ -95,7 +97,7 @@ function update() {
 }
 
 function render() {
-  [...seg.children].forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === layer)));
+  segs.forEach(seg => [...seg.children].forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === layer))));
   const ratios = cmap ? Object.fromEntries(check.beams.map(r => [r.id, r.ratio])) : null;
   const passFail = checkedAll ? Object.fromEntries(check.beams.map(r => [r.id, r.pass])) : null;
   viewer.setModel(building, { layer, ratios, passFail });
@@ -103,6 +105,7 @@ function render() {
   const ml = $('matlegend'); ml.hidden = layer !== 'materials'; ml.replaceChildren();
   for (const [k, m] of Object.entries(MATERIALS)) ml.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(m.name)));
   if (selected) viewer.select(selected.id);
+  renderCompare();
 }
 
 function kv(rows) {
@@ -222,5 +225,140 @@ function showMaterials() {
   $('matbody').replaceChildren(...kids);
 }
 
-window.__adt = { viewer, params, get building() { return building; }, get check() { return check; } };
+// ---------- versions, comparison, cause and effect ----------
+const api = async (path, opts) => {
+  const r = await fetch(path, opts);
+  if (!r.ok) { let m = r.statusText; try { const j = await r.json(); m = typeof j.detail === 'string' ? j.detail : j.detail.map(d => d.loc.join('.') + ': ' + d.msg).join('; '); } catch {} throw new Error(m); }
+  return r.status === 204 ? null : r.json();
+};
+const deep = o => JSON.parse(JSON.stringify(o));
+const say = t => { $('vmsg').textContent = t; };
+let saved = [], original = null;
+
+function analyse(p) {
+  const b = generateBuilding(p);
+  const ch = checkAll(b.components, { load: p.load, beamType: b.components.find(c => c.type === 'beam')?.beamType, material: p.material });
+  return { building: b, check: ch, summary: summarize(b, ch) };
+}
+const currentSummary = () => summarize(building, check);
+
+function setOriginal(name, p) {
+  try { original = { name, params: deep(p), ...analyse(p) }; } catch (e) { say('Cannot use that design as original: ' + e.message); return; }
+  $('origname').textContent = '(' + name + ')';
+  viewerA.resetView(); renderCompare();
+}
+
+const METRIC_FMT = {
+  worstDeflectionMm: v => `${fmt(v)} mm`, passCount: v => fmt(v, 0), failCount: v => fmt(v, 0),
+  totalWeightKg: v => `${fmt(v, 0)} kg`, totalCost: inr, daylight: v => fmt(v, 3),
+};
+const ARROW = { up: '▲', down: '▼', same: '＝' };
+const PNAME = { floor_visible: 'Floor visible', roof_type: 'Roof type', beam_type: 'Beam type', beam_b: 'Beam width b', beam_h: 'Beam depth h', span_x: 'Bay span x', span_z: 'Bay span z',
+  bays_x: 'Bays in x', bays_z: 'Bays in z', window_w: 'Window width', window_h: 'Window height', roof_pitch: 'Roof pitch', load: 'Applied load', floor_height: 'Floor height' };
+function pname(k) {
+  const m = k.match(/^floor_visible\[(\d)\]$/); if (m) return `Floor ${Number(m[1]) + 1} visible`;
+  if (PNAME[k]) return PNAME[k];
+  const s = k.replace(/[_.]/g, ' '); return s[0].toUpperCase() + s.slice(1);
+}
+function pval(k, v) {
+  if (v === undefined) return 'none';
+  if (typeof v === 'boolean') return v ? 'yes' : 'no';
+  if (k === 'material') return MATERIALS[v]?.name ?? v;
+  if (typeof v === 'number') return fmt(v, 3).replace(/\.?0+$/, '');
+  return String(v).replace(/_/g, ' ');
+}
+function effectTable(rows, nameA, nameB) {
+  const t = el('table', { class: 'etab' });
+  t.append(el('thead', {}, el('tr', {}, ...['Measure', nameA, nameB, 'Change'].map(x => el('th', { text: x })))));
+  const tb = el('tbody');
+  for (const r of rows) {
+    const f = METRIC_FMT[r.key];
+    const ch = r.direction === 'same' ? 'same' : `${r.word} by ${f(Math.abs(r.change))}`;
+    tb.append(el('tr', {}, el('td', { text: r.label }), el('td', { text: f(r.from) }), el('td', { text: f(r.to) }),
+      el('td', { class: 'chg ' + r.direction, text: `${ARROW[r.direction]} ${ch}` })));
+  }
+  t.append(tb); return t;
+}
+function paramList(diff) {
+  if (!diff.length) return el('p', { class: 'muted', text: 'No parameter differs.' });
+  const ul = el('ul', { class: 'plist' });
+  diff.forEach(d => ul.append(el('li', { text: `${pname(d.key)}: ${pval(d.key, d.from)} → ${pval(d.key, d.to)}` })));
+  return ul;
+}
+
+function renderCompare() {
+  if (!original || !building) return;
+  const dc = diffComponents(original.building.components, building.components);
+  viewerA.setModel(original.building, { layer, highlight: dc.original });
+  viewerB.setModel(building, { layer, highlight: dc.modified });
+  const pd = diffParams(original.building.params, building.params);
+  const rows = diffSummaries(original.summary, currentSummary());
+  $('cebody').replaceChildren(el('div', { class: 'cols2' },
+    el('div', {}, el('h3', { text: `Cause: ${pd.length} parameter${pd.length === 1 ? '' : 's'} changed (old → new)` }), paramList(pd)),
+    el('div', {}, el('h3', { text: 'Effect: what moved' }), effectTable(rows, 'Original', 'Modified'))),
+    el('p', { class: 'hint', text: 'Daylight indicator = window area / floor area. It is simple arithmetic, not a daylight simulation. Compared against the original shown in section 8.' }));
+  renderVersionCompare();
+}
+
+function versionOptions() {
+  return [['cur', 'Current design (unsaved)'], ...saved.map(d => ['d' + d.id, `${d.name} (#${d.id})`])];
+}
+function versionData(key) {
+  if (key === 'cur') return { name: 'Current', params: building.params, summary: currentSummary() };
+  const d = saved.find(x => 'd' + x.id === key); return d && { name: d.name, params: d.params, summary: d.summary };
+}
+function fillSelect(sel, def) {
+  const keep = sel.value, opts = versionOptions();
+  sel.replaceChildren(...opts.map(([v, t]) => el('option', { value: v, text: t })));
+  sel.value = opts.some(o => o[0] === keep) ? keep : def;
+}
+function renderVersionCompare() {
+  const a = versionData($('vcA').value), b = versionData($('vcB').value), box = $('vcbody');
+  if (!a || !b) { box.replaceChildren(el('p', { class: 'muted', text: 'Save a design to compare versions.' })); return; }
+  const pd = diffParams(a.params, b.params);
+  box.replaceChildren(el('h3', { text: `Results: ${a.name} vs ${b.name}` }), effectTable(diffSummaries(a.summary, b.summary), a.name, b.name),
+    el('h3', { text: `Parameters that differ (${pd.length}), A → B` }), paramList(pd));
+}
+function renderSaved() {
+  const box = $('vlist');
+  if (!saved.length) box.replaceChildren(el('p', { class: 'muted', text: 'No saved designs yet. Name the current design and press Save design.' }));
+  else box.replaceChildren(...saved.map(d => {
+    const s = d.summary, nb = (s.passCount ?? 0) + (s.failCount ?? 0);
+    const sm = `${s.passCount} of ${nb} beams pass · worst ${fmt(s.worstDeflectionMm)} mm · ${fmt(s.totalWeightKg, 0)} kg · ${inr(s.totalCost)}`;
+    return el('div', { class: 'vrow', 'data-id': d.id }, el('span', { class: 'nm', text: d.name }), el('span', { class: 'sm', text: sm }),
+      el('span', { class: 'acts' }, btn('Load', () => loadDesign(d)), btn('Set as original', () => { setOriginal(d.name, d.params); say(`Original is now "${d.name}".`); }, 'alt'),
+        btn('Delete', () => removeDesign(d), 'del')));
+  }));
+  fillSelect($('vcA'), 'cur'); fillSelect($('vcB'), 'cur');
+  if ($('vcA').value === $('vcB').value && saved.length) { $('vcA').value = 'd' + saved[0].id; }
+  if (building) renderVersionCompare();
+}
+async function refreshSaved() {
+  try { saved = await api('/designs'); renderSaved(); } catch (e) { say('Could not load saved designs: ' + e.message); }
+}
+function loadDesign(d) {
+  try {
+    const p = validateParams(d.params);
+    Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
+  } catch (e) { say('Cannot load: ' + e.message); return; }
+  refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`);
+}
+async function removeDesign(d) {
+  try { await api('/designs/' + d.id, { method: 'DELETE' }); say(`Deleted "${d.name}".`); await refreshSaved(); } catch (e) { say('Delete failed: ' + e.message); }
+}
+$('vsave').addEventListener('click', async () => {
+  const name = $('vname').value.trim();
+  if (!name) { say('Type a name first.'); return; }
+  if ($('err').textContent) { say('Fix the error in the parameters before saving.'); return; }
+  try {
+    await api('/designs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, params: deep(building.params), summary: currentSummary() }) });
+    say(`Saved "${name}".`); $('vname').value = ''; await refreshSaved();
+  } catch (e) { say('Save failed: ' + e.message); }
+});
+$('setorig').addEventListener('click', () => { setOriginal('current design when set', building.params); say('Original set to the current design.'); });
+$('vcA').addEventListener('change', renderVersionCompare); $('vcB').addEventListener('change', renderVersionCompare);
+
+window.__adt = { viewerA, viewerB, viewer, params, get building() { return building; }, get check() { return check; } };
 update();
+setOriginal('starting design', building.params);
+refreshSaved();

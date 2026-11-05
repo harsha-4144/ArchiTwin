@@ -155,3 +155,69 @@ export function compareBeam({ span, b, h, load, type = 'simply' }) {
   for (const key of Object.keys(MATERIALS)) out[key] = beamDeflection({ material: key, span, b, h, load, type });
   return out;
 }
+
+// ---- Stage 6 additions: versions, comparison, cause and effect ----
+// Daylight indicator = window area / floor area. Pure arithmetic, NOT a daylight simulation (no ray tracing).
+export function daylightIndicator(windowArea, floorArea) {
+  nonNeg(windowArea, 'windowArea'); nonNeg(floorArea, 'floorArea');
+  return floorArea > 0 ? windowArea / floorArea : 0;
+}
+
+// The summary that is saved with a design (summary_json). b = generateBuilding result, check = checkAll result.
+export function summarize(b, check) {
+  return {
+    passCount: check.passCount, failCount: check.failCount, worstDeflectionMm: check.worstDeflectionMm,
+    totalWeightKg: b.totals.weightKg, totalCost: b.totals.cost,
+    daylight: daylightIndicator(b.windowArea, b.floorArea),
+  };
+}
+
+export const SUMMARY_METRICS = [
+  ['worstDeflectionMm', 'Worst deflection'], ['passCount', 'Beams passing'], ['failCount', 'Beams failing'],
+  ['totalWeightKg', 'Total weight'], ['totalCost', 'Total cost'], ['daylight', 'Daylight indicator (window area / floor area, not a simulation)'],
+];
+
+// Rows for every metric present in both summaries: direction up/down/same plus a word, so arrows are never the only signal.
+export function diffSummaries(a, b) {
+  const rows = [];
+  for (const [key, label] of SUMMARY_METRICS) {
+    if (typeof a?.[key] !== 'number' || typeof b?.[key] !== 'number') continue;
+    const d = dir(a[key], b[key]);
+    rows.push({ key, label, from: a[key], to: b[key], change: b[key] - a[key], direction: d,
+      word: d === 'same' ? 'same' : d === 'up' ? 'higher' : 'lower' });
+  }
+  return rows;
+}
+
+function flat(o, prefix = '', out = {}) {
+  for (const [k, v] of Object.entries(o ?? {})) {
+    if (Array.isArray(v)) v.forEach((x, i) => { out[`${prefix}${k}[${i}]`] = x; });
+    else if (v && typeof v === 'object') flat(v, `${prefix}${k}.`, out);
+    else out[prefix + k] = v;
+  }
+  return out;
+}
+const sameVal = (x, y) => (typeof x === 'number' && typeof y === 'number') ? Math.abs(x - y) <= 1e-9 * Math.max(1, Math.abs(x), Math.abs(y)) : x === y;
+
+// Every changed parameter: [{ key, from, to }] (nested keys as doors.north, floor_visible[0]).
+export function diffParams(a, b) {
+  const fa = flat(a), fb = flat(b), out = [];
+  for (const key of new Set([...Object.keys(fa), ...Object.keys(fb)])) {
+    if (!sameVal(fa[key], fb[key])) out.push({ key, from: fa[key], to: fb[key] });
+  }
+  return out;
+}
+
+const compKey = c => JSON.stringify([c.type, c.material, c.size && [c.size.sx, c.size.sy, c.size.sz].map(v => +v.toFixed(6)),
+  c.area !== undefined ? +c.area.toFixed(6) : null, c.thickness ?? null, c.roofType ?? null, c.pitch ?? null,
+  c.openings ? [c.openings.doors, c.openings.windows, c.openings.windowW, c.openings.windowH] : null]);
+
+// Components whose size, material or count differs between two buildings (matched by id).
+// Returns { original: Set of ids, modified: Set of ids }; an id present on one side only counts as a count difference.
+export function diffComponents(compsA, compsB) {
+  const ma = new Map(compsA.map(c => [c.id, c])), mb = new Map(compsB.map(c => [c.id, c]));
+  const original = new Set(), modified = new Set();
+  for (const [id, c] of ma) if (!mb.has(id) || compKey(c) !== compKey(mb.get(id))) original.add(id);
+  for (const [id, c] of mb) if (!ma.has(id) || compKey(c) !== compKey(ma.get(id))) modified.add(id);
+  return { original, modified };
+}

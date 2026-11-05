@@ -38,6 +38,25 @@
   </aside>
   <section class="card bottom" id="matcard"><h2><b class="badge">5</b>Material Comparison</h2><div id="matbody"></div></section>
   <section class="card bottom" id="aboutcard"><h2><b class="badge">6</b>About This Result</h2><p class="muted">Coming in a later stage: data source, assumptions, limitations and when to use professional analysis.</p></section>
+  <section class="card wide" id="versions"><h2><b class="badge">7</b>Saved Designs</h2>
+    <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn">Save design</button><span id="vmsg" role="status"></span></div>
+    <div id="vlist"></div>
+  </section>
+  <section class="card wide" id="cmpcard"><h2><b class="badge">8</b>Original vs Modified</h2>
+    <div class="bar"><div class="seg layerseg" role="radiogroup" aria-label="Layer for comparison"></div>
+      <button id="setorig" type="button" class="btn">Set current design as original</button>
+      <span class="hl-key"><i></i>Orange glow = part differs (size, material or count)</span></div>
+    <div class="pair">
+      <figure><figcaption><b>Original Design</b> <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>
+      <figure><figcaption><b>Modified Design</b> <span class="muted">(current)</span></figcaption><div class="view2" id="viewB"></div></figure>
+    </div>
+    <p class="hint">Each view orbits on its own. Highlighting shows which parts changed between the two.</p>
+  </section>
+  <section class="card wide" id="cause"><h2><b class="badge">9</b>Cause and Effect</h2><div id="cebody" aria-live="polite"></div></section>
+  <section class="card wide" id="vcompare"><h2><b class="badge">10</b>Compare Two Versions</h2>
+    <div class="bar"><label>A <select id="vcA" aria-label="Version A"></select></label><label>B <select id="vcB" aria-label="Version B"></select></label></div>
+    <div id="vcbody"></div>
+  </section>
 </main>
 <script type="module" src="app.js"></script>
 </body>
