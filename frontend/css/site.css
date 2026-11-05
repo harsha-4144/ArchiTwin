@@ -38,7 +38,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
   .split-4-8{grid-template-columns:4fr 8fr;align-items:start}
   .cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
   .cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .stagger>:nth-child(2){margin-top:var(--s-6)} .stagger>:nth-child(3){margin-top:var(--s-7)}
 }
 @media (min-width:640px) and (max-width:899px){.cols-3,.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .cols-4{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}

@@ -3,7 +3,7 @@ import { generateBuilding, validateParams, DEFAULT_PARAMS, SIDES } from './build
 import { MATERIALS, summarize, diffSummaries, diffParams, diffComponents, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
 import { ICONS, statusChip } from './js/icons.mjs';
-import { PRESETS, resolvePreset } from './presets.mjs';
+import { PRESETS, resolvePreset, presetOf } from './presets.mjs';
 import { generateArchitecture, featureTotals, DECORATIVE_NOTE } from './architecture.mjs';
 import { beamMessage, buildingMessage, materialMessage, DEFLECTION_EXPLAINER, ABOUT, ABOUT_CONTEXT, HELP, SELECT_HINT } from './messages.mjs';
 import { componentName, componentNameWithId, openingLines } from './names.mjs';
@@ -474,6 +474,8 @@ function analyse(p) {
   const ch = checkAll(b.components, { load: p.load, beamType: b.components.find(c => c.type === 'beam')?.beamType, material: p.material });
   return { building: b, check: ch, summary: summarize(b, ch) };
 }
+// params.preset is only a bookmark for the decorative look; it is not a design parameter.
+const diffParamsShown = (a, b) => diffParams(a, b).filter(d => d.key !== 'preset');
 const currentSummary = () => summarize(building, check);
 
 function setOriginal(name, p) {
@@ -529,7 +531,7 @@ function renderCompare() {
   viewerA.fitModels([original.building, building]); viewerB.fitModels([original.building, building]);
   const cl = $('cmplegend'); cl.hidden = !byMaterial; cl.replaceChildren();
   if (byMaterial) for (const k of [original.params.material, params.material]) cl.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(MATERIALS[k].name + (k === original.params.material ? ' (original)' : ' (modified)'))));
-  const pd = diffParams(original.building.params, building.params);
+  const pd = diffParamsShown(original.building.params, building.params);
   const rows = diffSummaries(original.summary, currentSummary());
   $('cebody').replaceChildren(el('div', { class: 'cols2' },
     el('div', {}, el('h3', { text: `Cause: ${pd.length} parameter${pd.length === 1 ? '' : 's'} changed (old → new)` }), paramList(pd)),
@@ -553,7 +555,7 @@ function fillSelect(sel, def) {
 function renderVersionCompare() {
   const a = versionData($('vcA').value), b = versionData($('vcB').value), box = $('vcbody');
   if (!a || !b) { box.replaceChildren(el('p', { class: 'muted', text: 'Save a design to compare versions.' })); return; }
-  const pd = diffParams(a.params, b.params);
+  const pd = diffParamsShown(a.params, b.params);
   box.replaceChildren(el('h3', { text: `Results: ${a.name} vs ${b.name}` }), effectTable(diffSummaries(a.summary, b.summary), a.name, b.name),
     el('h3', { text: `Parameters that differ (${pd.length}), A → B` }), paramList(pd), aboutLink('versions'));
 }
@@ -579,7 +581,7 @@ function loadDesign(d) {
     const p = validateParams(d.params);
     Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
   } catch (e) { say('Cannot load: ' + e.message); return; }
-  curPreset = null; refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`); setQuery('design', d.id);
+  curPreset = presetOf(d.params) || null; refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`); setQuery('design', d.id);
 }
 async function removeDesign(d) {
   try { await api('/designs/' + d.id, { method: 'DELETE' }); say(`Deleted "${d.name}".`); await refreshSaved(); } catch (e) { say('Delete failed: ' + e.message); }
@@ -604,7 +606,7 @@ for (const p of PRESETS) presetSel.append(el('option', { value: p.id, text: p.na
 function loadPreset(id) {
   const pr = resolvePreset(id); if (!pr) return;
   try {
-    const p = validateParams(pr.params);
+    const p = validateParams(pr.params); p.preset = pr.id;
     Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
   } catch (e) { $('err').textContent = 'Cannot load: ' + e.message; return; }
   curPreset = pr;

@@ -78,3 +78,21 @@ test('old preset slugs map to the nearest new house', () => {
   for (const p of PRESETS) assert.equal(resolvePreset(p.id), p);
   assert.equal(resolvePreset('nope'), undefined);
 });
+
+test('a saved params object with a preset id restores the same features and does not change totals', async () => {
+  const { presetOf } = await import('../presets.mjs');
+  const { summarize } = await import('../calc.mjs');
+  for (const pr of PRESETS) {
+    const saved = JSON.parse(JSON.stringify({ ...validateParams(pr.params), preset: pr.id }));   // as stored by the API
+    const back = presetOf(saved);
+    assert.equal(back.id, pr.id);
+    const b = generateBuilding(saved), b0 = generateBuilding(pr.params);
+    const ids = a => a.map(f => f.id);
+    assert.deepEqual(ids(generateArchitecture(saved, b, back.features)), ids(generateArchitecture(pr.params, b0, pr.features)));
+    assert.ok(generateArchitecture(saved, b, back.features).length > 0);
+    const s1 = summarize(b, check(b, saved)), s0 = summarize(b0, check(b0, pr.params));
+    assert.deepEqual(s1, s0);                          // extra preset key + features change no totals
+  }
+  assert.equal(presetOf({}), undefined);
+  assert.equal(presetOf({ preset: 'nope' }), undefined);
+});

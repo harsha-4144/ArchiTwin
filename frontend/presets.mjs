@@ -61,3 +61,6 @@ export function resolvePreset(slug) {
   if (!k) return undefined;
   return PRESETS.find(p => squash(p.id) === k) || PRESETS.find(p => p.id === PRESET_ALIASES[k]);
 }
+
+// A saved design remembers its starting design in params.preset (extra key; never used by any calculation).
+export const presetOf = params => (params && typeof params.preset === 'string') ? PRESETS.find(p => p.id === params.preset) : undefined;

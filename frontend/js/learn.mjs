@@ -20,11 +20,11 @@ $('#worked').replaceChildren(
     el('li', { text: `Self weight: the beam adds ${fmt(b0.r.selfWeightKNm)} kN/m, so the total load w is ${fmt(b0.r.totalKNm)} kN/m.` }),
     el('li', { text: `Sag: the simply supported formula gives ${fmt(b0.r.deflectionMm)} mm.` }),
     el('li', { text: `Limit: ${base.span} m ÷ 250 = ${fmt(b0.r.limitMm)} mm. The beam uses ${fmt(b0.r.ratio * 100, 0)}% of what is allowed, so it ${b0.r.pass ? 'passes' : 'fails'}.` })),
-  el('div', { class: 'tablewrap', tabindex: '0', role: 'region', 'aria-label': 'Worked example results' }, el('table', { class: 'data' },
+  el('div', { class: 'tablewrap stack', tabindex: '0', role: 'region', 'aria-label': 'Worked example results' }, el('table', { class: 'data' },
     el('caption', { text: 'The same beam with two fixes' }),
     el('thead', {}, el('tr', {}, ...['Case', 'Sag', 'Allowed', 'Share of limit', 'Result'].map((t, i) => el('th', { scope: 'col', class: i > 0 && i < 4 ? 'num' : '', text: t })))),
-    el('tbody', {}, ...rows.map(({ label, r }) => el('tr', {}, el('th', { scope: 'row', text: label }), el('td', { class: 'num', text: fmt(r.deflectionMm) + ' mm' }), el('td', { class: 'num', text: fmt(r.limitMm) + ' mm' }),
-      el('td', { class: 'num', text: fmt(r.ratio * 100, 0) + '%' }), el('td', {}, statusChip(r.pass ? 'pass' : 'fail'))))))),
+    el('tbody', {}, ...rows.map(({ label, r }) => el('tr', {}, el('th', { scope: 'row', text: label }), el('td', { class: 'num', 'data-label': 'Sag', text: fmt(r.deflectionMm) + ' mm' }), el('td', { class: 'num', 'data-label': 'Allowed', text: fmt(r.limitMm) + ' mm' }),
+      el('td', { class: 'num', 'data-label': 'Share of limit', text: fmt(r.ratio * 100, 0) + '%' }), el('td', { 'data-label': 'Result' }, statusChip(r.pass ? 'pass' : 'fail'))))))),
   el('p', { class: 'worked-note', text: 'Depth works because it is cubed in I. Steel works because its E is much larger than timber. Try both in the studio.' }),
   el('p', {}, el('a', { href: '/studio?preset=twin-gable', text: 'Try these fixes in the studio' })));
 

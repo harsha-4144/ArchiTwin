@@ -1,5 +1,5 @@
 // designs.mjs - starting designs, saved designs (API) and a two-way comparison. Display only: numbers come from calc.mjs.
-import { PRESETS } from '../presets.mjs';
+import { PRESETS, presetOf } from '../presets.mjs';
 import { diffSummaries } from '../calc.mjs';
 import { $, el, fmt, inr, analyse, fetchDesigns, ROOFS, MATNAMES } from './util.mjs';
 import { statusChip } from './icons.mjs';
@@ -28,7 +28,7 @@ const cardFor = ({ p, r }) => {
   getThumb({ id: p.id, params: p.params, palette: p.palette, features: p.features }).then(u => { img.src = u; });
   const res = s.failCount ? statusChip('fail', `${s.failCount} of ${n} beams fail`) : statusChip('pass', `All ${n} beams pass`);
   const chips = el('ul', { class: 'chips', 'aria-label': 'Key facts' }, ...[`${p.params.floors} floor${p.params.floors > 1 ? 's' : ''}`, `${bays(p.params)} bays`, ROOFS[p.params.roof_type] + ' roof', MATNAMES[p.params.material]].map(t => el('li', { text: t })));
-  const card = el('article', { class: 'card dcard', 'data-id': p.id }, img, el('h3', { text: p.name + (p.demo ? ' (demo)' : '') }), el('p', { class: 'muted', text: p.tagline }), chips,
+  const card = el('article', { class: 'card dcard', 'data-id': p.id }, img, ...(p.demo ? [el('span', { class: 'demo-chip', text: 'Demo' })] : []), el('h3', { text: p.name }), el('p', { class: 'muted', text: p.tagline }), chips,
     el('p', { class: 'res' }, res), el('a', { class: 'btn btn-secondary', href: '/studio?preset=' + p.id, text: 'Open in studio', 'aria-label': 'Open ' + p.name + ' in studio' }));
   return card;
 };
@@ -55,7 +55,8 @@ function renderSaved() {
   box.replaceChildren(el('div', { class: 'gallery' }, ...saved.map(d => {
     const s = d.summary || {}, n = (s.passCount ?? 0) + (s.failCount ?? 0);
     const img = el('img', { class: 'thumb', width: '480', height: '320', alt: `${d.name}: 3D view`, src: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 3 2%22%3E%3C/svg%3E' });
-    getThumb({ id: 'saved-' + d.id, params: d.params }).then(u => { img.src = u; });
+    const pr = presetOf(d.params);
+    getThumb({ id: 'saved-' + d.id, params: d.params, palette: pr && pr.palette, features: pr && pr.features }).then(u => { img.src = u; });
     const card = el('article', { class: 'card dcard' }, img, el('h3', { text: d.name }), dl(facts(d.params)));
     if (n) card.append(el('p', { class: 'num', text: `${s.passCount} of ${n} beams pass` }));
     card.append(el('a', { class: 'btn btn-secondary', href: '/studio?design=' + d.id, text: 'Open in studio', 'aria-label': 'Open ' + d.name + ' in studio' }));
@@ -75,7 +76,7 @@ function fillPicks() {
 const lookup = key => {
   const [kind, id] = key.split(':');
   if (kind === 'preset') { const p = PRESETS.find(x => x.id === id); return p && { name: p.name, params: p.params, features: p.features }; }
-  const d = saved.find(x => String(x.id) === id); return d && { name: d.name, params: d.params };
+  const d = saved.find(x => String(x.id) === id); return d && { name: d.name, params: d.params, features: (presetOf(d.params) || {}).features };
 };
 const fval = {
   worstDeflectionMm: v => fmt(v) + ' mm', passCount: v => String(v), failCount: v => String(v),
