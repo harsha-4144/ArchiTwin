@@ -2,6 +2,11 @@
 # ADT: one command runs everything. No internet needed at runtime.
 set -e
 cd "$(dirname "$0")"
+# One-time setup (needs internet once): create .venv and install fastapi + uvicorn if missing.
+if [ ! -f .venv/bin/activate ] && ! python3 -c "import fastapi,uvicorn" 2>/dev/null; then
+  echo "First run: creating .venv and installing fastapi, uvicorn (internet needed once)..."
+  python3 -m venv .venv && .venv/bin/pip install -q fastapi uvicorn pytest httpx
+fi
 if [ -f .venv/bin/activate ]; then . .venv/bin/activate; PY=python; else PY=python3; fi
 export ADT_DB="${ADT_DB:-backend/adt.db}"
 # Create the DB file if missing (stage 1 backend creates tables on startup)

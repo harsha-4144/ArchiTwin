@@ -45,3 +45,6 @@
 ### Stage 7: Alternatives, messages, About panel — gate PASS
 - 4 presets (Small house, Two-storey house, Hall, Shed) load with zero console errors; Two-storey house = timber, 12 of 24 beams fail, fixed by depth 0.5 m or steel (tested). Five "About this result" buttons open card 6. Node 33, pytest 33.
 - Assumption: demo house is timber so check-all shows red beams. Last CSS-only tweak (highlight bullets) was not re-screenshotted; stage 8 re-verifies.
+### Stage 8: Polish, README, clean-folder test — gate PASS
+- Fresh `git clone` -> `./run.sh` starts app, DB created from scratch; 5-step demo run in headless browser with zero console errors (two-storey timber: 12 of 24 pass; depth 0.4 m or steel fixes; material comparison; save/compare; restart keeps designs; /docs and GET /designs). Pytest 33, node 33.
+- Gaps: run.sh venv auto-create branch unexercised; run.bat unchanged and untested on Windows; window clicks hit the wall component (windows are wall openings, not separate parts).
