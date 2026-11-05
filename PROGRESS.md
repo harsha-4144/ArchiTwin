@@ -42,3 +42,6 @@
 ### Stage 6: Versions and comparison — gate PASS
 - Saved "Original house" + "Modified steel", stopped server by PID, restarted on same DB: both listed and loadable; two-version compare table works; Original vs Modified two views with orange highlight; Cause and Effect lists every changed parameter (old -> new) and results with arrows plus words (lower/higher). Node 29, pytest 33; no console errors; no overflow at 390px.
 - Assumptions: the "original" baseline is in memory only (resets on reload; defaults to start design until "Set as original"); a material change highlights all parts; daylight indicator = window area / floor area, labelled not a simulation. Badge 8 used for the Original vs Modified card.
+### Stage 7: Alternatives, messages, About panel — gate PASS
+- 4 presets (Small house, Two-storey house, Hall, Shed) load with zero console errors; Two-storey house = timber, 12 of 24 beams fail, fixed by depth 0.5 m or steel (tested). Five "About this result" buttons open card 6. Node 33, pytest 33.
+- Assumption: demo house is timber so check-all shows red beams. Last CSS-only tweak (highlight bullets) was not re-screenshotted; stage 8 re-verifies.
