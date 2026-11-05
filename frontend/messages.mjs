@@ -33,9 +33,9 @@ export function materialMessage(passCount, total, name) {
 // ---- About this result (card 6) ----
 export const ABOUT_STATEMENT = 'Simplified model, no live-data link. Not a structural safety check.';
 export const ABOUT = {
-  source: ['Material numbers (stiffness, density, heat conduction, cost) are rounded teaching assumptions.',
-    'Durability ratings are assumed, not measured.',
-    'Material numbers are rounded teaching values, not yet from a cited source.'],
+  source: ['Stiffness, density and heat conduction are rounded teaching values near typical published ranges (see Sources and assumptions in the README); steel heat conduction is not verified.',
+    'Cost and durability are typical teaching values, not verified against any source.',
+    'All material numbers are rounded teaching values, so treat them as approximate.'],
   assumptions: [
     ['beam', 'Each beam is a solid rectangle (width b by depth h) of one material.'],
     ['load', 'The load you enter is spread evenly along the beam, in kN/m (kilonewtons of force per metre of beam length).'],

@@ -52,3 +52,14 @@ If anything fails, open `prototype/digital-twin-simulator.html` directly in a br
 
 ## Open item O6
 Material values (modulus, density, cost in rupees) are rounded assumptions. Citing a published source for them is still **open**.
+
+## Sources and assumptions
+Values are rounded teaching assumptions, not design data. Costs are rough. "Checked" means the page below was opened and shows a number or range near ours; the rounded value is ours.
+
+| Material | Young's modulus E | Density | Thermal conductivity | Cost per m3 | Durability |
+|---|---|---|---|---|---|
+| Timber | 11 GPa. Checked: a Python library implementing EN 338:2016 (https://blueprints.readthedocs.io/en/stable/API%20reference/codes/eurocode/en_338_2016/chapter_5_classification_of_structural_timber/table_1/) gives C24 mean bending modulus 11.0 (N/mm2 = GPa x 1000 as listed). Only C24 is shown. Engineering ToolBox (https://www.engineeringtoolbox.com/young-modulus-d_417.html) lists 9 to 13 GPa for pine, oak, Douglas fir. | 600 kg/m3. Engineering ToolBox seasoned wood (https://www.engineeringtoolbox.com/wood-density-d_40.html): pines 350 to 850, oak 600 to 900. EN 338 C24 mean is 420 (same library page), so 600 is on the heavy side: ours is a rounded middle value. | 0.13 W/mK. Engineering ToolBox (https://engineeringtoolbox.com/thermal-conductivity-d_429.html): softwoods 0.12, hardwoods 0.16, pine 0.14 to 0.15. | typical teaching value, not verified | typical teaching value, not verified |
+| Steel | 200 GPa. Checked: Engineering ToolBox (https://www.engineeringtoolbox.com/young-modulus-d_417.html) gives 200 GPa for structural steel ASTM A36. | 7850 kg/m3. Engineering ToolBox (https://www.engineeringtoolbox.com/density-solids-d_1265.html) gives 7820; ours is the common rounded 7850. | typical teaching value, not verified (the Engineering ToolBox page lists steel but shows no number) | typical teaching value, not verified | typical teaching value, not verified |
+| Concrete | 25 GPa. Checked: IS 456:2000 clause 6.2.3.1 Ec = 5000 sqrt(fck) MPa, as quoted on a secondary site (https://infralens.in/code/IS-456-2000), gives 25 GPa for M25 (the BIS text itself was not opened). Engineering ToolBox shows 17 to 30 GPa. | 2400 kg/m3. Engineering ToolBox dense concrete 2000 to 2400 (https://www.engineeringtoolbox.com/density-solids-d_1265.html). IS 456 reinforced concrete unit weight 25 kN/m3 (about 2500 kg/m3), same secondary site. | 1.4 W/mK. Engineering ToolBox dense concrete 1.0 to 1.8 (https://engineeringtoolbox.com/thermal-conductivity-d_429.html). | typical teaching value, not verified | typical teaching value, not verified |
+
+Cost (INR 30,000 / 470,000 / 20,000 per m3) is not taken from any Schedule of Rates. Durability (Medium / High / High) is a qualitative assumption.
