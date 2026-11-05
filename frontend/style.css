@@ -7,16 +7,17 @@ h1{margin:0;font-size:22px;color:var(--teal);letter-spacing:.3px}
 h1 span{font-weight:400}
 .tag{margin:0;color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase}
 .note{margin:4px 20px 8px;padding:4px 10px;background:#efe3c4;border-radius:8px;font-size:13px}
-main{flex:1;display:grid;grid-template-columns:270px minmax(0,1fr) 290px;grid-template-rows:auto auto;gap:12px;padding:0 20px 16px;align-items:stretch}
+main{flex:1;display:grid;grid-template-columns:260px minmax(0,1fr) 300px;gap:12px;padding:0 20px 16px;align-items:stretch}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 2px 6px rgba(80,60,20,.07);min-width:0}
 h2{margin:0 0 8px;font-size:16px;color:var(--teal);display:flex;align-items:center;gap:8px}
 .badge{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:13px;align-items:center;justify-content:center;flex:none;font-style:normal}
-#params{grid-column:1;grid-row:1/3}
-#right{display:flex;flex-direction:column;gap:12px;grid-column:3;grid-row:1}
+#params{grid-column:1;align-self:start}
+#center{grid-column:2;display:flex;flex-direction:column;gap:12px;min-width:0}
+#right{display:flex;flex-direction:column;gap:12px;grid-column:3}
 #details{flex:none}
 #right{align-self:start}
-#viewcard{align-self:start;display:flex;flex-direction:column;min-height:0;grid-column:2;grid-row:1}
-#view{flex:none;height:max(540px,calc(100vh - 230px));border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+#viewcard{display:flex;flex-direction:column;min-height:0}
+#view{flex:none;height:max(620px,calc(100vh - 170px));border-radius:12px;overflow:hidden;border:1px solid var(--line)}
 #view canvas{display:block}
 .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .seg{display:inline-flex;border:1px solid var(--teal);border-radius:999px;overflow:hidden}
@@ -48,11 +49,13 @@ input[type=number]{width:60px}
 #legend em{font-style:normal;color:var(--muted)}
 #matlegend{margin-top:8px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap}
 #matlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid #0003}
-#matcard{grid-column:2;grid-row:2}
-#aboutcard{grid-column:3;grid-row:2}
+#matcard{grid-column:1/3}
+#aboutcard{grid-column:3}
+#matcard,#aboutcard{align-self:start}
 @media (max-width:900px){
   main{grid-template-columns:1fr;grid-template-rows:none}
-  #params,#viewcard,#right,#matcard,#aboutcard{grid-column:auto;grid-row:auto}
+  #center,#right{display:contents}
+  #params,#matcard,#aboutcard{grid-column:auto}
     #view{height:55vh;min-height:300px;flex:none}
   header,.note{margin-left:12px;margin-right:12px;padding-left:0} main{padding:0 12px 12px}
 }
@@ -87,12 +90,15 @@ input[type=number]{width:60px}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pair figure{margin:0;min-width:0}
 .pair figcaption{margin-bottom:4px;font-size:14px;color:var(--teal)}
-.view2{height:340px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.view2{height:420px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
 .view2 canvas{display:block}
 .hl-key{font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
 .hl-key i{width:12px;height:12px;border-radius:3px;background:#ff8a00;display:inline-block}
 .etab{width:100%;border-collapse:collapse;font-size:14px}
-.etab th,.etab td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;overflow-wrap:anywhere}
+.tscroll{overflow-x:auto;max-width:100%}
+.etab{min-width:460px}
+.etab th,.etab td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.etab td:first-child{white-space:normal;min-width:110px}
 .etab th:first-child,.etab td:first-child{text-align:left}
 .etab td.chg{font-weight:600;color:var(--teal);text-align:left;white-space:nowrap}
 .etab td.chg.same{color:var(--muted)}
@@ -103,9 +109,8 @@ input[type=number]{width:60px}
 #vcompare label{font-size:14px}
 @media (max-width:900px){
   .pair,.cols2{grid-template-columns:1fr}
-  .view2{height:280px}
   .etab{font-size:13px}
-  .etab td.chg{white-space:normal}
+  .view2{height:340px}
 }
 
 /* stage 7 */
@@ -121,3 +126,14 @@ button.about-link{margin-top:8px;border:1px solid var(--teal);background:#fff;co
 #aboutcard:focus{outline:2px solid var(--teal)}
 @keyframes abflash{from{box-shadow:0 0 0 4px #ff8a00}to{box-shadow:none}}
 @media (prefers-reduced-motion:reduce){#aboutcard.flash{animation:none}}
+
+/* M2 fixes */
+#analysis table,#matbody table{min-width:0}
+.tscroll table{min-width:340px}
+#analysis td,#analysis th,#matbody td,#matbody th{white-space:nowrap}
+#analysis td:first-child,#matbody td:first-child{white-space:normal}
+.tip{font-size:12px;color:var(--muted);margin:0 0 6px}
+.cols2>div,#cebody,#vcbody{min-width:0}
+@media (max-width:900px){.pair,.cols2{grid-template-columns:minmax(0,1fr)}}
+#resbody .kv dd{white-space:nowrap}
+#resbody .kv{grid-template-columns:auto 1fr}

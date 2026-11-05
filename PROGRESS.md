@@ -48,3 +48,9 @@
 ### Stage 8: Polish, README, clean-folder test — gate PASS
 - Fresh `git clone` -> `./run.sh` starts app, DB created from scratch; 5-step demo run in headless browser with zero console errors (two-storey timber: 12 of 24 pass; depth 0.4 m or steel fixes; material comparison; save/compare; restart keeps designs; /docs and GET /designs). Pytest 33, node 33.
 - Gaps: run.sh venv auto-create branch unexercised; run.bat unchanged and untested on Windows; window clicks hit the wall component (windows are wall openings, not separate parts).
+### M2 reviewers (code, math, spec, design, student)
+- math PASS; spec PASS (all gates 0-8; extra module files messages/presets/viewer/style.css are harmless); code: no bugs (60 fps 2 floors 3x3 bays in software GL; nit: nested NaN in summary -> fixed + test).
+- design: tall right column/empty space, "Chang/e" header wrap, tofu glyph for "same", wrapping costs, narrow tables at 390px, Original vs Modified far down -> fixed (re-laid out: 3D, Original vs Modified, Analysis stacked in centre; badges 1-11 reading order; tables scroll inside card).
+- student: jargon (O6, L/250, kN/m, raw beam ids), no load hint, unexplained steel weight, unclear buttons, no assumptions on pass state -> fixed in wording/captions.
+- Test change disclosed: stage7.test.mjs About assertion changed from /O6/ to /not yet from a cited source/ because the jargon "O6" was deliberately reworded per student review (not weakened).
+- Commit "Review fixes M2". pytest 37, node 33.

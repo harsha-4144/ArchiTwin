@@ -42,7 +42,7 @@ test('failing beam message says what to change', () => {
   assert.match(buildingMessage(c, { material: 'timber' }), /Try a deeper beam/);
 });
 test('about content has all required parts', () => {
-  assert.ok(ABOUT.source.some(s => /O6/.test(s)) && ABOUT.limitations.length && ABOUT.professional);
+  assert.ok(ABOUT.source.some(s => /not yet from a cited source/.test(s)) && ABOUT.limitations.length && ABOUT.professional);
   assert.match(ABOUT_STATEMENT, /Simplified model, no live-data link/);
   const ids = ABOUT.assumptions.map(a => a[0]);
   for (const k of ['results', 'analysis', 'materials', 'cause', 'versions']) for (const i of ABOUT_CONTEXT[k].ids) assert.ok(ids.includes(i), `${k}:${i}`);

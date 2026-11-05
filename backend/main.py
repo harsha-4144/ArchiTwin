@@ -87,9 +87,9 @@ class DesignIn(BaseModel):
         mats = {r["name"] for r in con.execute("SELECT name FROM materials")}
         con.close()
         validate_params(self.params, mats)
+        if not _all_finite(self.summary):
+            raise ValueError("summary must not contain NaN or infinity")
         for k, v in self.summary.items():
-            if isinstance(v, float) and not math.isfinite(v):
-                raise ValueError(f"summary.{k} must be a finite number")
             if _num(v) and v < 0:
                 raise ValueError(f"summary.{k} must not be negative")
         return self

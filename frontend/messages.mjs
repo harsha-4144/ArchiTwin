@@ -35,10 +35,10 @@ export const ABOUT_STATEMENT = 'Simplified model, no live-data link. Not a struc
 export const ABOUT = {
   source: ['Material numbers (stiffness, density, heat conduction, cost) are rounded teaching assumptions.',
     'Durability ratings are assumed, not measured.',
-    'Open item O6: these values are not yet taken from a cited source.'],
+    'Material numbers are rounded teaching values, not yet from a cited source.'],
   assumptions: [
     ['beam', 'Each beam is a solid rectangle (width b by depth h) of one material.'],
-    ['load', 'The load you enter is spread evenly along the beam (kN/m).'],
+    ['load', 'The load you enter is spread evenly along the beam, in kN/m (kilonewtons of force per metre of beam length).'],
     ['support', 'A beam is either simply supported (rests on a support at each end) or a cantilever (fixed at one end, free at the other).'],
     ['self', 'The beam\'s own weight is included in its load.'],
     ['slab', 'Slabs are fixed: 120 mm concrete. Slab and wall weight is NOT added to the beam load.'],

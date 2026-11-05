@@ -16,6 +16,7 @@
 <main>
   <section class="card" id="params"><h2><b class="badge">1</b>Design Parameters</h2>
     <div class="row" id="presetrow"><label for="preset">Design alternative</label><select id="preset" aria-label="Design alternative"></select></div><p class="hint" id="presetblurb"></p><div id="controls"></div></section>
+  <div id="center">
   <section class="card" id="viewcard">
     <h2><b class="badge">2</b>Interactive Building Model</h2>
     <div class="bar">
@@ -25,36 +26,37 @@
     </div>
     <div id="view"></div>
     <div id="legend" hidden>
-      <span>Beam deflection as share of limit (L/250)</span>
+      <span>Beam deflection as share of limit (limit = span ÷ 250)</span>
       <i class="grad"></i><span class="ticks"><em>0%</em><em>50%</em><em>100%+</em></span>
     </div>
     <div id="matlegend" hidden></div>
     <p class="hint">Drag to orbit, scroll to zoom, click a part for details. Use the Structure layer to pick parts hidden behind walls.</p>
     <p class="err" id="err" role="alert"></p>
   </section>
-  <aside id="right">
-    <section class="card" id="results"><h2><b class="badge">3</b>Expected Results</h2><div id="resbody"></div></section>
-    <section class="card" id="analysis"><h2>Analysis</h2><div id="anbody"></div></section>
-    <section class="card" id="details"><h2><b class="badge">4</b>Selected Component</h2><div id="detbody"><p class="muted">Click any part of the building.</p></div></section>
-  </aside>
-  <section class="card bottom" id="matcard"><h2><b class="badge">5</b>Material Comparison</h2><div id="matbody"></div></section>
-  <section class="card bottom" id="aboutcard" tabindex="-1"><h2><b class="badge">6</b>About This Result</h2><div id="aboutbody"></div></section>
-  <section class="card wide" id="versions"><h2><b class="badge">7</b>Saved Designs</h2>
-    <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn">Save design</button><span id="vmsg" role="status"></span></div>
-    <div id="vlist"></div>
-  </section>
-  <section class="card wide" id="cmpcard"><h2><b class="badge">8</b>Original vs Modified</h2>
+  <section class="card" id="cmpcard"><h2><b class="badge">3</b>Original vs Modified</h2>
     <div class="bar"><div class="seg layerseg" role="radiogroup" aria-label="Layer for comparison"></div>
       <button id="setorig" type="button" class="btn">Set current design as original</button>
       <span class="hl-key"><i></i>Orange glow = part differs (size, material or count)</span></div>
     <div class="pair">
-      <figure><figcaption><b>Original Design</b> <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>
-      <figure><figcaption><b>Modified Design</b> <span class="muted">(current)</span></figcaption><div class="view2" id="viewB"></div></figure>
+      <figure><figcaption><b>Original design</b> (before) <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>
+      <figure><figcaption><b>Modified design</b> (after, current)</figcaption><div class="view2" id="viewB"></div></figure>
     </div>
     <p class="hint">Each view orbits on its own. Highlighting shows which parts changed between the two.</p>
   </section>
-  <section class="card wide" id="cause"><h2><b class="badge">9</b>Cause and Effect</h2><div id="cebody" aria-live="polite"></div></section>
-  <section class="card wide" id="vcompare"><h2><b class="badge">10</b>Compare Two Versions</h2>
+    <section class="card" id="analysis"><h2><b class="badge">4</b>Analysis</h2><div id="anbody"></div></section>
+  </div>
+  <aside id="right">
+    <section class="card" id="results"><h2><b class="badge">5</b>Expected Results</h2><div id="resbody"></div></section>
+    <section class="card" id="details"><h2><b class="badge">6</b>Selected Component</h2><div id="detbody"><p class="muted">Click any part of the building.</p></div></section>
+  </aside>
+  <section class="card bottom" id="matcard"><h2><b class="badge">7</b>Material Comparison</h2><div id="matbody"></div></section>
+  <section class="card bottom" id="aboutcard" tabindex="-1"><h2><b class="badge">8</b>About This Result</h2><div id="aboutbody"></div></section>
+  <section class="card wide" id="versions"><h2><b class="badge">9</b>Saved Designs</h2>
+    <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn">Save design</button><span id="vmsg" role="status"></span></div>
+    <div id="vlist"></div>
+  </section>
+  <section class="card wide" id="cause"><h2><b class="badge">10</b>Cause and Effect</h2><div id="cebody" aria-live="polite"></div></section>
+  <section class="card wide" id="vcompare"><h2><b class="badge">11</b>Compare Two Versions</h2>
     <div class="bar"><label>A <select id="vcA" aria-label="Version A"></select></label><label>B <select id="vcB" aria-label="Version B"></select></label></div>
     <div id="vcbody"></div>
   </section>

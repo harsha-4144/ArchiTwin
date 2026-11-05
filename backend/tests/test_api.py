@@ -75,3 +75,10 @@ def test_nonfinite_params_422(client, raw):
     body = ('{"name":"t","summary":{"pass":1},"params":' + raw + '}')
     r = client.post("/designs", content=body, headers={"content-type": "application/json"})
     assert r.status_code == 422
+
+
+@pytest.mark.parametrize("raw", ['{"a": {"b": NaN}}', '{"a": [1, {"b": Infinity}]}', '{"worst": {"x": {"y": -Infinity}}}', '{"a": {"b": 1e999}}'])
+def test_nonfinite_nested_summary_422(client, raw):
+    body = '{"name":"t","params":{"floors":1},"summary":' + raw + '}'
+    r = client.post("/designs", content=body, headers={"content-type": "application/json"})
+    assert r.status_code == 422
