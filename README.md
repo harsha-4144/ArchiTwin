@@ -1,4 +1,5 @@
-# Architectural Digital Twin cum Simulator (ADT)
+# ArchiTwin
+*Architectural Digital Twin cum Simulator*
 
 A browser app for architecture students. Pick a small building, change its parameters (floors, bays, spans, material, beam size, load, roof, doors, windows) and see the 3D model, beam deflection checks, weight, cost and cause-and-effect messages update at once. Designs can be saved, reloaded and compared.
 

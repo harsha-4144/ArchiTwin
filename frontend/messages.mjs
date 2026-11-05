@@ -31,7 +31,7 @@ export function materialMessage(passCount, total, name) {
 }
 
 // ---- About this result (card 6) ----
-export const ABOUT_STATEMENT = 'Simplified model, no live-data link. Not a structural safety check.';
+export const ABOUT_STATEMENT = 'ArchiTwin (Architectural Digital Twin cum Simulator). Simplified model, no live-data link. Not a structural safety check.';
 export const ABOUT = {
   source: ['Stiffness, density and heat conduction are rounded teaching values near typical published ranges (see Sources and assumptions in the README); steel heat conduction is not verified.',
     'Cost and durability are typical teaching values, not verified against any source.',
