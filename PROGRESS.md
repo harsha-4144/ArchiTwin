@@ -22,3 +22,7 @@
 ### Stage 1: Backend and materials — gate PASS
 - pytest 17 passed; /health, /docs (200), /materials (timber, steel, concrete) verified via ./run.sh; saved design survives restart.
 - Assumption: durability rating lives in the frontend (plan's materials table has no such column). Param validation covers floors 1-2, bays 1-3, span 2-8, floor height 2.5-4, material, beam type, roof type.
+### Stage 2: Calculation — gate PASS
+- Tests A/B/C within 0.01 mm, trend, totals, bad-input tests: 9 pass via `node --test frontend/tests/*.test.mjs`; pytest 17 pass.
+- Deviation: plan's `node --test frontend/tests` fails on Node 22 (MODULE_NOT_FOUND); the glob form is used everywhere instead.
+- Assumption: slabs are always concrete (plan: "concrete slab of 120 mm").
