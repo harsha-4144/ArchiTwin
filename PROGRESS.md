@@ -54,3 +54,4 @@
 - student: jargon (O6, L/250, kN/m, raw beam ids), no load hint, unexplained steel weight, unclear buttons, no assumptions on pass state -> fixed in wording/captions.
 - Test change disclosed: stage7.test.mjs About assertion changed from /O6/ to /not yet from a cited source/ because the jargon "O6" was deliberately reworded per student review (not weakened).
 - Commit "Review fixes M2". pytest 37, node 33.
+- M2 re-review round: design/student re-checks mostly clear. Final CSS polish: About + Material Comparison full-width, bigger pass/fail legend. Remaining known nits (not fixed): Original-vs-Modified views ~350 px wide and fully orange when material differs; selected-beam card shows raw id; "bay"/"cantilever"/"stiffer" lightly explained; Selected Component card empty until a click; mobile page is very long (~7800 px).

@@ -49,13 +49,18 @@ input[type=number]{width:60px}
 #legend em{font-style:normal;color:var(--muted)}
 #matlegend{margin-top:8px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap}
 #matlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid #0003}
-#matcard{grid-column:1/3}
-#aboutcard{grid-column:3}
+#matcard{grid-column:1/-1}
+#aboutcard{grid-column:1/-1}
+#aboutbody{column-count:3;column-gap:24px}
+#aboutbody h3,#aboutbody .abctx{break-after:avoid}
+#aboutbody .abctx{column-span:all}
+#aboutbody .flag{column-span:all}
 #matcard,#aboutcard{align-self:start}
 @media (max-width:900px){
   main{grid-template-columns:1fr;grid-template-rows:none}
   #center,#right{display:contents}
   #params,#matcard,#aboutcard{grid-column:auto}
+  #aboutbody{column-count:1}
     #view{height:55vh;min-height:300px;flex:none}
   header,.note{margin-left:12px;margin-right:12px;padding-left:0} main{padding:0 12px 12px}
 }
@@ -72,8 +77,8 @@ input[type=number]{width:60px}
 .sw b{display:block;color:var(--teal)}
 .failist{margin:4px 0;padding-left:18px;font-size:13px}
 .flag{font-weight:700}
-.legpf{font-size:12px;margin:4px 0}
-.legpf i{display:inline-block;width:12px;height:12px;border-radius:3px;margin:0 4px 0 8px;vertical-align:-1px}
+.legpf{font-size:15px;margin:6px 0}
+.legpf i{display:inline-block;width:18px;height:18px;border-radius:4px;margin:0 6px 0 12px;vertical-align:-3px}
 @media (max-width:900px){.sw{grid-template-columns:1fr}}
 [hidden]{display:none!important}
 
