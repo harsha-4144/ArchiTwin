@@ -90,10 +90,10 @@ body[data-page=studio],body[data-page=designs]{--hedge:var(--edge-wide)}
 
 /* buttons: one pill shape */
 .btn,button.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);min-height:44px;padding:0 24px;border-radius:var(--r-pill);font:600 1rem/1 var(--font-body);cursor:pointer;border:1px solid transparent;background-image:none;text-decoration:none;transition:background-color var(--d-press),color var(--d-press),transform var(--d-press)}
-.btn-primary{background:var(--teal);color:#fff;border-color:var(--teal)}
-.btn-primary:hover{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff}
-.btn-secondary{background:transparent;color:var(--teal-deep);border-color:var(--teal-deep)}
-.btn-secondary:hover{background:var(--sand)}
+.btn.btn-primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn.btn-primary:hover{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff}
+.btn.btn-secondary{background:transparent;color:var(--teal-deep);border-color:var(--teal-deep)}
+.btn.btn-secondary:hover{background:var(--sand)}
 .btn:active{transform:translateY(1px)}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .band .btn-secondary{color:#fff;border-color:#fff} .band .btn-secondary:hover{background:rgba(255,255,255,.12)}
@@ -148,6 +148,11 @@ output{font-weight:600}
 /* hover underline on cards' titles is handled by lift only */
 .stat-note{font-size:var(--t-small);color:var(--muted)}
 
+/* page transition: a short fade and rise when a page loads (CSS only) */
+@media (prefers-reduced-motion:no-preference){
+  @keyframes pagein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  main,.site-footer{animation:pagein 280ms var(--ease-in) both}
+}
 /* reveal: script adds .reveal; content visible without JS and under reduced motion */
 @media (prefers-reduced-motion:no-preference){
   .reveal{opacity:0;transform:translateY(16px);transition:opacity var(--d-reveal) var(--ease-in),transform var(--d-reveal) var(--ease-in);transition-delay:calc(var(--i,0)*60ms)}

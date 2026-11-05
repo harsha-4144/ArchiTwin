@@ -15,7 +15,8 @@ const b0 = rows[0];
 $('#worked').replaceChildren(
   el('p', { text: `A timber beam spans ${base.span} m. Its section is ${base.b} m wide and ${base.h} m deep, and it carries ${base.load} kN/m. It is simply supported.` }),
   el('ol', { class: 'steps-list' },
-    el('li', { text: `Stiffness: timber has E = ${MATERIALS.timber.eGPa} GPa. The section's I comes from the first formula above.` }),
+    el('li', { text: `Section: I = b × h³ / 12 = ${base.b} × ${base.h}³ / 12 = ${base.b} × ${fmt(base.h ** 3, 3)} / 12 = ${(base.b * base.h ** 3 / 12).toExponential(3).replace('e-', ' × 10⁻').replace(/⁻(\d)/, (m, d) => '⁻' + '⁰¹²³⁴⁵⁶⁷⁸⁹'[d])} m⁴ (display only; calc.mjs uses the same formula).` }),
+    el('li', { text: `Stiffness: timber has E = ${MATERIALS.timber.eGPa} GPa, so E × I measures how hard the beam is to bend.` }),
     el('li', { text: `Self weight: the beam adds ${fmt(b0.r.selfWeightKNm)} kN/m, so the total load w is ${fmt(b0.r.totalKNm)} kN/m.` }),
     el('li', { text: `Sag: the simply supported formula gives ${fmt(b0.r.deflectionMm)} mm.` }),
     el('li', { text: `Limit: ${base.span} m ÷ 250 = ${fmt(b0.r.limitMm)} mm. The beam uses ${fmt(b0.r.ratio * 100, 0)}% of what is allowed, so it ${b0.r.pass ? 'passes' : 'fails'}.` })),

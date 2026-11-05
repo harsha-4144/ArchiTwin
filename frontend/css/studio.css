@@ -1,13 +1,16 @@
 /* Studio: the simulator, restyled to the v2 tokens. Compact data panels; no cards inside cards. */
-.note{margin:0;padding:var(--s-2) var(--edge-wide);background:var(--sand);font-size:var(--t-small);color:var(--ink);border-bottom:1px solid var(--line-soft)}
-main.studio{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap);padding:var(--s-5) var(--edge-wide) var(--s-7);align-items:start}
+.note{margin:0;max-width:none;width:100%;padding:var(--s-2) var(--edge-wide);background:var(--sand);font-size:var(--t-small);color:var(--ink);border-bottom:1px solid var(--line-soft)}
+main.studio{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--gap);padding:var(--s-4) var(--edge-wide) var(--s-7);align-items:start}
 .card{padding:var(--s-4) var(--s-5)}
-h2{font-size:var(--t-h3);margin:0 0 var(--s-3);display:flex;align-items:center;gap:var(--s-3)}
+h2,.card h2{font-size:1.125rem;line-height:1.2;margin:0 0 var(--s-3);display:flex;align-items:center;gap:var(--s-3)}
+.card h2{white-space:nowrap}
+@media (max-width:359px){.card h2{white-space:normal}}
 h3{font-size:1.05rem}
 .badge{width:28px;height:28px}
 #center{display:contents}
 #right{display:contents}
-#view{height:clamp(320px,55vh,720px);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line-soft)}
+#view{height:clamp(320px,55vh,720px);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line-soft);position:relative;background:var(--cream)}
+.state{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:var(--s-5);margin:0;max-width:none;color:var(--muted);background:var(--cream);z-index:1}
 #view canvas,.view2 canvas{display:block}
 .view2{height:340px;border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line-soft)}
 #viewcard{order:-3}
@@ -20,7 +23,7 @@ h3{font-size:1.05rem}
   #results,#details{order:0}
   #right{display:grid;grid-column:1/-1;grid-row:2;grid-template-columns:1fr 1fr;gap:var(--gap)}
   #cmpcard,#analysis,.wide,.bottom{grid-column:1/-1}
-  #view{height:clamp(480px,calc(100vh - 220px),760px)}
+  #view{height:clamp(340px,calc(100vh - 345px),780px)}
   .view2{height:460px}
 }
 @media (min-width:1200px){
@@ -30,13 +33,16 @@ h3{font-size:1.05rem}
 #viewcard{display:flex;flex-direction:column}
 #params,#right{min-width:0}
 
-.bar{display:flex;gap:var(--s-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--s-3)}
+.bar{display:flex;gap:var(--s-2) var(--s-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--s-3)}
+.vfoot{display:flex;gap:var(--s-2) var(--s-3);align-items:center;flex-wrap:wrap;margin-top:var(--s-3)}
+.vfoot select{flex:0 1 280px;min-width:0;max-width:100%}
+.bendnote{font-size:var(--t-label);color:var(--muted);font-family:var(--font-mono)}
 .seg{display:inline-flex;border:1px solid var(--teal-deep);border-radius:var(--r-pill);overflow:hidden}
-.seg button{border:0;background:transparent;color:var(--teal-deep);padding:0 var(--s-4);min-height:40px;font:600 var(--t-small)/1 var(--font-body);cursor:pointer}
+.seg button{border:0;background:transparent;color:var(--teal-deep);padding:0 var(--s-3);min-height:40px;font:600 var(--t-small)/1 var(--font-body);cursor:pointer}
 .seg button[aria-checked=true]{background:var(--teal-deep);color:#fff}
 .seg button:focus-visible{outline-offset:-3px}
 button{font:inherit}
-.bar .btn,#versions .btn,#cmpcard .btn{min-height:40px;padding:0 var(--s-4);font-size:var(--t-small)}
+.bar .btn,.vfoot .btn,#versions .btn,#cmpcard .btn{min-height:40px;padding:0 var(--s-4);font-size:var(--t-small)}
 .chk{display:flex;gap:var(--s-2);align-items:center;font-size:var(--t-small);font-weight:400;min-height:32px}
 .chk input{width:18px;height:18px;accent-color:var(--teal)}
 fieldset{border:0;border-top:1px solid var(--line-soft);margin:var(--s-3) 0 0;padding:var(--s-3) 0 var(--s-1);min-width:0}
@@ -47,7 +53,7 @@ legend{color:var(--teal-deep);font-weight:600;font-size:var(--t-label);padding:0
 .row output{font-size:var(--t-small)}
 #presetrow select{grid-column:1/-1;width:100%}
 select,input[type=number]{min-height:40px;font-size:var(--t-small)}
-input[type=number]{width:72px}
+input[type=number]{width:72px;font-family:var(--font-mono)}
 .sides{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:var(--s-2);align-items:center;font-size:var(--t-small)}
 .sides input{width:100%}
 .tg{display:flex;gap:var(--s-3);flex-wrap:wrap}
@@ -107,7 +113,7 @@ button.help{border:1px solid var(--teal-deep);background:var(--paper);color:var(
 #vlist button.del{background:transparent;color:var(--fail);border-color:var(--fail)}
 #vlist button.del:hover{background:var(--fail-bg)}
 button.about-link{margin-top:var(--s-3)}
-@media (max-width:639px){#analysis button,#vlist button,button.about-link,.seg button,.bar .btn,#versions .btn,#cmpcard .btn,select,input[type=number]{min-height:44px}}
+@media (max-width:639px){#analysis button,#vlist button,button.about-link,.seg button,.bar .btn,.vfoot .btn,#versions .btn,#cmpcard .btn,select,input[type=number]{min-height:44px}}
 
 #vname{min-width:0;flex:1 1 180px;max-width:320px;border-radius:var(--r-pill);padding:0 var(--s-4)}
 #vmsg{font-size:var(--t-small);color:var(--muted)}
@@ -161,3 +167,35 @@ details.fold>summary h2{margin-bottom:var(--s-3)}
   details.fold[open]>summary h2::after{content:"\25BE"}
 }
 @media (prefers-reduced-motion:reduce){#aboutcard.flash{animation:none}}
+
+/* tooltip (hover and keyboard), linked to the 3D view by aria-describedby */
+#tip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:var(--sh-2);padding:6px 10px;font-size:var(--t-label);max-width:300px;display:grid;gap:2px}
+#tip span{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--muted)}
+.empty{max-width:none}
+
+/* Beam Bending card */
+.bendsvg{width:100%;height:auto;display:block;margin:var(--s-2) 0;overflow:visible}
+.bendsvg .bm{fill:var(--sand);stroke:var(--teal-deep);stroke-width:1.5;stroke-linejoin:round}
+.bendsvg .rest{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4}
+.bendsvg .lim{stroke:var(--fail);stroke-width:1.5;stroke-dasharray:6 4}
+.bendsvg .limt{font:600 13px var(--font-body);fill:var(--fail)}
+.bendsvg .tri{fill:var(--paper);stroke:var(--teal-deep);stroke-width:1.5}
+.bendsvg .sup path:not(.tri){stroke:var(--teal-deep);stroke-width:1.5;fill:none}
+.bendsvg .wallblk{fill:var(--sand);stroke:var(--teal-deep);stroke-width:1.5}
+.bendres{margin:var(--s-2) 0 0}
+
+/* before / after slider: both views stacked, the modified one clipped from the handle to the right edge */
+.pair.slider{display:block;position:relative;height:clamp(300px,56vw,480px);border:1px solid var(--line-soft);border-radius:var(--r-md);overflow:hidden;background:var(--cream)}
+.pair.slider figure{position:absolute;inset:0;margin:0}
+.pair.slider figure:nth-of-type(2){clip-path:inset(0 0 0 var(--p,50%))}
+.pair.slider .view2{height:100%;border:0;border-radius:0}
+.pair.slider figcaption{position:absolute;top:8px;z-index:2;margin:0;max-width:46%;background:var(--paper);border:1px solid var(--line-soft);padding:2px 10px;border-radius:var(--r-pill);pointer-events:none;font-size:var(--t-label)}
+.pair.slider figure:nth-of-type(1) figcaption{left:8px}
+.pair.slider figure:nth-of-type(2) figcaption{right:8px}
+#split{display:none;position:absolute;top:0;bottom:0;left:var(--p,50%);width:44px;margin-left:-22px;z-index:3;cursor:ew-resize;touch-action:none}
+.pair.slider #split{display:block}
+#split::before{content:"";position:absolute;left:20px;top:0;bottom:0;width:4px;background:var(--teal-deep);box-shadow:0 0 0 1px var(--paper)}
+#split .grip{position:absolute;top:50%;left:0;width:44px;height:44px;margin-top:-22px;border-radius:50%;background:var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23124f4c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 7l-5 5 5 5M15 7l5 5-5 5'/%3E%3C/svg%3E") center/26px no-repeat;border:2px solid var(--teal-deep);box-shadow:var(--sh-2);transition:transform var(--d-press)}
+#split:hover .grip,#split.drag .grip{transform:scale(1.08)}
+#split:focus-visible{outline:none}
+#split:focus-visible .grip{outline:3px solid var(--focus);outline-offset:3px}

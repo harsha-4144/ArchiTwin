@@ -2,9 +2,42 @@
 import { generateBuilding, validateParams, DEFAULT_PARAMS, SIDES } from './building.mjs';
 import { MATERIALS, summarize, diffSummaries, diffParams, diffComponents, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
+import { ICONS, statusChip } from './js/icons.mjs';
 import { PRESETS } from './presets.mjs';
 import { beamMessage, buildingMessage, materialMessage, DEFLECTION_EXPLAINER, ABOUT, ABOUT_CONTEXT, HELP, SELECT_HINT } from './messages.mjs';
 import { componentName, componentNameWithId, openingLines } from './names.mjs';
+import { bendShape } from './viewer.mjs';
+
+// ---------- motion helpers (display only; respect prefers-reduced-motion) ----------
+const BEND_SCALE = 30;   // drawing exaggeration for beam bending; never applied to any number
+const reduced = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
+const easeOut = t => 1 - (1 - t) ** 3;
+const shown = new Map();   // key -> number currently shown (so a new animation starts from what the user sees)
+function countTo(node, key, to, f, ms = 300) {
+  const from = shown.has(key) ? shown.get(key) : 0;
+  shown.set(key, to);
+  if (from === to || reduced()) { node.textContent = f(to); return; }
+  node.textContent = f(from);
+  const t0 = performance.now(), my = (node._tok = {});
+  const step = now => {
+    if (node._tok !== my) return;
+    const p = Math.min(1, (now - t0) / ms), v = p >= 1 ? to : from + (to - from) * easeOut(p);
+    node.textContent = f(v); shown.set(key, v);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+// Eases one number towards a target and calls draw(value) on every frame.
+function makeTween(draw, ms = 250) {
+  let cur = 0, raf = 0, token = 0;
+  return { get value() { return cur; },
+    to(target) {
+      const from = cur, t0 = performance.now(), my = ++token; cancelAnimationFrame(raf);
+      if (reduced() || from === target) { cur = target; draw(cur); return; }
+      const step = now => { if (my !== token) return; const p = Math.min(1, (now - t0) / ms); cur = p >= 1 ? target : from + (target - from) * easeOut(p); draw(cur); if (p < 1) raf = requestAnimationFrame(step); };
+      raf = requestAnimationFrame(step);
+    } };
+}
 
 const $ = id => document.getElementById(id);
 const params = JSON.parse(JSON.stringify(DEFAULT_PARAMS));
@@ -82,7 +115,7 @@ group('Loads', slider('Applied load', 'load', 0, 50, 1, ' kN/m'), el('p', { clas
 const segs = [...document.querySelectorAll('#layers, .layerseg')];
 for (const seg of segs) for (const [k, t] of [['structure', 'Structure'], ['architecture', 'Architecture'], ['materials', 'Materials']]) {
   const b = el('button', { type: 'button', role: 'radio', 'data-layer': k, text: t });
-  b.addEventListener('click', () => { layer = k; render(); });
+  b.addEventListener('click', () => { layer = k; render(); if (seg.id === 'layers') viewer.resetView(); });
   seg.append(b);
 }
 $('cmap').addEventListener('change', e => { cmap = e.target.checked; render(); });
@@ -90,8 +123,66 @@ $('checkall').addEventListener('click', () => checkAllBeams());
 $('reset').addEventListener('click', () => viewer.resetView());
 
 // ---------- model ----------
-const viewerA = createViewer($('viewA'), () => {}), viewerB = createViewer($('viewB'), () => {});
-const viewer = createViewer($('view'), c => { selected = c; analysed = false; anType = null; showDetails(); showAnalysis(); showMaterials(); });
+// If WebGL is unavailable the 3D areas show a message and every number, table and diagram still works.
+let glFailed = false;
+const NOGL = { setModel() {}, select() {}, resetView() {}, focusOn() {}, fitModels() {}, followCamera() {}, onCamera() {}, resize() {}, camState: () => null, screenPosOf: () => null, ids: () => [], sagOf: () => null, sagTarget: () => null, midY: () => null, flying: () => false, controls: {} };
+function makeViewer(host, pick, hover) {
+  try { return createViewer(host, pick, hover); }
+  catch (e) {
+    glFailed = true;
+    host.replaceChildren(el('p', { class: 'state', role: 'status', text: 'The 3D view cannot start because WebGL is switched off or not supported here. Numbers, tables and the beam diagram still work. Try another browser or turn on hardware acceleration.' }));
+    return NOGL;
+  }
+}
+const tip = el('div', { id: 'tip', role: 'tooltip', hidden: '' });
+document.body.append(tip);
+function tipSize(c) {
+  const mm = v => fmt(v * 1000, 0);
+  if (c.type === 'slab' || c.type === 'roof') return `${fmt(c.area)} m² × ${mm(c.thickness)} mm`;
+  if (c.type === 'wall') return `${fmt(c.length)} × ${fmt(c.height)} m × ${mm(c.thickness)} mm`;
+  if (c.type === 'column') return `${mm(c.width)} × ${mm(c.length)} mm × ${fmt(c.height)} m`;
+  return `${mm(c.width)} × ${mm(c.height)} mm × ${fmt(c.length)} m`;
+}
+function showTip(c, x, y) {
+  if (!c || !building) { tip.hidden = true; return; }
+  const r = componentWeightCost(c, params.material);
+  tip.replaceChildren(el('b', { text: componentName(c) }), el('span', { text: `${MATERIALS[r.material].name} · ${tipSize(c)}` }));
+  tip.hidden = false;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  const px = Math.max(8, Math.min(innerWidth - w - 8, x + 14)), py = Math.max(8, Math.min(innerHeight - h - 8, y + 16));
+  tip.style.transform = `translate(${px}px,${py}px)`;
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') tip.hidden = true; });
+function showTipAtPart(c) {
+  const p = viewer.screenPosOf(c.id); if (p) showTip(c, p.x, p.y);
+}
+const viewerA = makeViewer($('viewA'), () => {}), viewerB = makeViewer($('viewB'), () => {});
+viewerA.followCamera(viewerB); viewerB.followCamera(viewerA);   // the before/after views move together
+function pickPart(c, fromList = false) {
+  selected = c; analysed = false; anType = null;
+  if (fromList) render();
+  showDetails(); showAnalysis(); showMaterials(); showBend(); syncPicker();
+  if (c) { viewer.focusOn(c.id); if (fromList || matchMedia('(pointer:coarse)').matches) showTipAtPart(c); } else tip.hidden = true;
+}
+const viewer = makeViewer($('view'), c => pickPart(c), (c, x, y) => { if (c) showTip(c, x, y); else tip.hidden = true; });
+const picker = $('partpick');
+let pickerKey = '';
+function fillPicker() {
+  const key = building.components.map(c => c.id).join('|');
+  if (key !== pickerKey) {
+    pickerKey = key;
+    picker.replaceChildren(el('option', { value: '', text: 'Choose a part…' }));
+    for (const [t, n] of TYPE_GROUPS) {
+      const og = el('optgroup', { label: n });
+      for (const c of building.components) if (c.type === t) og.append(el('option', { value: c.id, text: componentName(c) }));
+      if (og.children.length) picker.append(og);
+    }
+  }
+  syncPicker();
+}
+function syncPicker() { picker.value = selected ? selected.id : ''; }
+picker.addEventListener('change', () => { const c = building.components.find(x => x.id === picker.value); if (c) pickPart(c, true); });
+$('bendnote').textContent = `Bending shown ×${BEND_SCALE}: drawing only, the numbers are exact. Very large bends are clipped in the drawing.`;
 
 function update() {
   f2.input.disabled = params.floors < 2;
@@ -105,14 +196,16 @@ function update() {
   }
   if (selected && !building.components.some(c => c.id === selected.id)) selected = null;
   else if (selected) selected = building.components.find(c => c.id === selected.id);
-  render(); showResults(); showDetails(); showAnalysis(); showMaterials();
+  fillPicker(); render(); showResults(); showDetails(); showAnalysis(); showMaterials(); showBend();
 }
 
 function render() {
   segs.forEach(seg => [...seg.children].forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === layer))));
   const ratios = cmap ? Object.fromEntries(check.beams.map(r => [r.id, r.ratio])) : null;
   const passFail = checkedAll ? Object.fromEntries(check.beams.map(r => [r.id, r.pass])) : null;
-  viewer.setModel(building, { layer, ratios, passFail });
+  const deflections = Object.fromEntries(check.beams.map(r => [r.id, r.deflectionMm]));
+  viewer.setModel(building, { layer, ratios, passFail, deflections, bendScale: BEND_SCALE });
+  if (!render.done) { render.done = true; const st = $('viewstate'); if (st) st.remove(); }
   $('legend').hidden = !cmap;
   const ml = $('matlegend'); ml.hidden = layer !== 'materials'; ml.replaceChildren();
   for (const [k, m] of Object.entries(MATERIALS)) ml.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(m.name)));
@@ -122,7 +215,11 @@ function render() {
 
 function kv(rows) {
   const d = el('dl', { class: 'kv' });
-  for (const [k, v, cls] of rows) { d.append(el('dt', { text: k }), el('dd', { text: v, class: cls || '' })); }
+  for (const [k, v, cls, num] of rows) {
+    const dd = el('dd', { text: v, class: cls || '' });
+    if (num) countTo(dd, num.key, num.v, num.f);
+    d.append(el('dt', { text: k }), dd);
+  }
   return d;
 }
 
@@ -157,15 +254,15 @@ function showResults() {
   const w = check.beams.find(b => b.id === check.worstId);
   const t = building.totals;
   $('resbody').replaceChildren(kv([
-    ['Beams passing', `${check.passCount} of ${check.beams.length}`, 'pass'],
-    ['Beams failing', String(check.failCount), check.failCount ? 'fail' : ''],
-    ['Worst deflection', `${fmt(check.worstDeflectionMm)} mm`, w && !w.pass ? 'fail' : ''],
-    ['Allowed (span ÷ 250)', w ? `${fmt(w.limitMm)} mm` : 'none'],
+    ['Beams passing', `${check.passCount} of ${check.beams.length} pass`, 'pass', { key: 'pass', v: check.passCount, f: n => `${Math.round(n)} of ${check.beams.length} pass` }],
+    ['Beams failing', `${check.failCount} fail`, check.failCount ? 'fail' : 'pass', { key: 'fail', v: check.failCount, f: n => `${Math.round(n)} fail` }],
+    ['Worst deflection', `${fmt(check.worstDeflectionMm)} mm`, '', { key: 'worst', v: check.worstDeflectionMm, f: n => `${fmt(n)} mm` }],
+    ['Allowed (span ÷ 250)', w ? `${fmt(w.limitMm)} mm` : 'none', '', w ? { key: 'lim', v: w.limitMm, f: n => `${fmt(n)} mm` } : null],
     ['Worst beam', w ? componentName(w.id) : 'none', 'wrapok'],
     ['Worst beam result', w ? (w.pass ? 'PASS' : 'FAIL') : 'none', w && !w.pass ? 'fail' : 'pass'],
-    ['Total weight', `${fmt(t.weightKN, 1)} kN`],
-    ['Total mass', `${fmt(t.weightKg, 0)} kg`],
-    ['Estimated cost', inr(t.cost)],
+    ['Total weight', `${fmt(t.weightKN, 1)} kN`, '', { key: 'kn', v: t.weightKN, f: n => `${fmt(n, 1)} kN` }],
+    ['Total mass', `${fmt(t.weightKg, 0)} kg`, '', { key: 'kg', v: t.weightKg, f: n => `${fmt(n, 0)} kg` }],
+    ['Estimated cost', inr(t.cost), '', { key: 'cost', v: t.cost, f: inr }],
   ]), el('p', { class: check.failCount ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }),
   el('p', { class: 'hint', text: DEFLECTION_EXPLAINER }), aboutLink('results'));
 }
@@ -240,7 +337,7 @@ function showAnalysis() {
     out.push(btn('Clear colours', () => { checkedAll = false; render(); showAnalysis(); }, 'alt', 'Remove the green and red colours from the model'), el('span', { class: 'tip', text: ' Clear colours: removes the green and red beam colours.' }));
     const fails = check.beams.filter(b => !b.pass);
     const lp = el('p', { class: 'legpf' }, el('i', { style: 'background:#2e9e5b' }), document.createTextNode('pass'), el('i', { style: 'background:#d0382b' }), document.createTextNode('fail'));
-    out.push(el('p', { class: fails.length ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }), lp, kv([['Beams passing', `${check.passCount} of ${check.beams.length}`, 'pass'], ['Beams failing', String(check.failCount), fails.length ? 'fail' : 'pass']]));
+    out.push(el('p', { class: fails.length ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }), lp, kv([['Beams passing', `${check.passCount} of ${check.beams.length} pass`, 'pass'], ['Beams failing', `${check.failCount} fail`, fails.length ? 'fail' : 'pass']]));
     if (fails.length) {
       const ul = el('ul', { class: 'failist' });
       fails.forEach(b => ul.append(el('li', { class: 'fail', title: b.id, text: `FAIL ${componentName(b.id)}: ${fmt(b.deflectionMm)} mm > ${fmt(b.limitMm)} mm` })));
@@ -254,6 +351,54 @@ function showAnalysis() {
       ['Total', String(building.components.length), fmt(t.total.weightKN, 1), inr(t.total.cost)]));
   out.push(aboutLink('analysis'));
   box.replaceChildren(...out);
+}
+
+// ---------- Beam Bending card: side view of the selected (or worst) beam, eased between values ----------
+const SVGNS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs = {}) => { const n = document.createElementNS(SVGNS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
+const BW = 320, BX0 = 28, BX1 = 292, BY = 44, BT = 12, PX = 26, N = 40;   // drawing units; PX = pixels per 100% of the limit
+let bendSvg = null, bendKind = 'simply', bendRatio = 0;
+const bendTween = makeTween(v => drawBend(v));
+function drawBend(r) {
+  if (!bendSvg) return;
+  const sag = Math.min(3, r) * PX, top = [], bot = [];
+  for (let i = 0; i <= N; i++) {
+    const xi = i / N, x = BX0 + xi * (BX1 - BX0), y = BY + sag * bendShape(bendKind, xi);
+    top.push(`${x.toFixed(1)},${y.toFixed(1)}`); bot.push(`${x.toFixed(1)},${(y + BT).toFixed(1)}`);
+  }
+  bendSvg.querySelector('.bm').setAttribute('points', top.concat(bot.reverse()).join(' '));
+}
+function buildBendSvg() {
+  const svg = svgEl('svg', { viewBox: `0 0 ${BW} 150`, class: 'bendsvg', role: 'img', 'aria-labelledby': 'bend-t' });
+  svg.append(Object.assign(svgEl('title', { id: 'bend-t' }), { textContent: 'Side view of a beam bending under load. The dashed line marks the allowed sag.' }));
+  const supports = svgEl('g', { class: 'sup' });
+  if (bendKind === 'cantilever') {
+    supports.append(svgEl('rect', { x: 10, y: BY - 12, width: 18, height: 52, class: 'wallblk' }));
+    for (let k = 0; k < 4; k++) supports.append(svgEl('path', { d: `M10 ${BY - 4 + k * 12}l-6 8` }));
+  } else {
+    for (const x of [BX0, BX1]) supports.append(svgEl('path', { d: `M${x} ${BY + BT + 1}l-9 16h18z`, class: 'tri' }));
+  }
+  const lim = svgEl('line', { x1: 10, x2: BW - 6, y1: BY + PX, y2: BY + PX, class: 'lim' });
+  const limText = Object.assign(svgEl('text', { x: BW - 8, y: BY + PX - 6, 'text-anchor': 'end', class: 'limt' }), { textContent: 'allowed sag' });
+  const base = svgEl('line', { x1: BX0, x2: BX1, y1: BY, y2: BY, class: 'rest' });
+  const beam = svgEl('polygon', { class: 'bm' });
+  svg.append(supports, base, lim, limText, beam);
+  return svg;
+}
+function showBend() {
+  const box = $('bendbody');
+  const r = (selected && selected.type === 'beam' && check.beams.find(b => b.id === selected.id)) || check.beams.find(b => b.id === check.worstId);
+  if (!r) { box.replaceChildren(el('p', { class: 'muted hintbox', text: 'This design has no beams, so there is nothing to bend. Add a bay in x or z.' })); bendSvg = null; return; }
+  const kind = buildingBeamType() === 'cantilever' ? 'cantilever' : 'simply';
+  const first = !bendSvg || !box.contains(bendSvg);
+  if (first || kind !== bendKind) { bendKind = kind; bendSvg = buildBendSvg(); drawBend(bendTween.value); }
+  const chosen = selected && selected.id === r.id;
+  const rows = kv([['Deflection', `${fmt(r.deflectionMm)} mm`, '', { key: 'bd', v: r.deflectionMm, f: n => `${fmt(n)} mm` }], ['Allowed (span ÷ 250)', `${fmt(r.limitMm)} mm`], ['Share of limit', `${fmt(r.ratio * 100, 0)}%`]]);
+  const chip = statusChip(r.pass ? 'pass' : 'fail');
+  box.replaceChildren(el('p', { class: 'muted', text: `${chosen ? 'Selected beam' : 'Worst beam (click a beam to show another)'}: ${componentName(r.id)}` }),
+    bendSvg, rows, el('p', { class: 'bendres' }, chip),
+    el('p', { class: 'hint', text: `Side view, bending exaggerated: the dashed line is the allowed sag, so a beam that crosses it fails. Real sag is ${fmt(r.deflectionMm)} mm.` }));
+  bendRatio = r.ratio; bendTween.to(r.ratio);
 }
 
 function showMaterials() {
@@ -377,7 +522,7 @@ function renderVersionCompare() {
 }
 function renderSaved() {
   const box = $('vlist');
-  if (!saved.length) box.replaceChildren(el('p', { class: 'muted', text: 'No saved designs yet. Name the current design and press Save design.' }));
+  if (!saved.length) box.replaceChildren(el('p', { class: 'muted hintbox empty', text: 'No saved designs yet. Type a name above and press Save design to keep the current design. Saved designs are stored on this computer by the app server and survive a restart.' }));
   else box.replaceChildren(...saved.map(d => {
     const s = d.summary, nb = (s.passCount ?? 0) + (s.failCount ?? 0);
     const sm = `${s.passCount} of ${nb} beams pass · worst ${fmt(s.worstDeflectionMm)} mm · ${fmt(s.totalWeightKg, 0)} kg · ${inr(s.totalCost)}`;
@@ -433,7 +578,34 @@ function loadPreset(id) {
 }
 presetSel.addEventListener('change', () => loadPreset(presetSel.value));
 
-window.__adt = { loadPreset, openAbout, viewerA, viewerB, viewer, params, get building() { return building; }, get check() { return check; } };
+// ---------- before / after slider (role=slider; drag, touch or arrow keys) ----------
+const pair = $('pair'), split = $('split');
+let splitPct = 50;
+function setSplit(v) {
+  splitPct = Math.max(0, Math.min(100, Math.round(v * 10) / 10));
+  pair.style.setProperty('--p', splitPct + '%');
+  split.setAttribute('aria-valuenow', String(Math.round(splitPct)));
+  split.setAttribute('aria-valuetext', `${Math.round(splitPct)}% original, ${Math.round(100 - splitPct)}% modified`);
+}
+split.addEventListener('keydown', e => {
+  const step = e.shiftKey ? 10 : 5, k = e.key;
+  const next = k === 'ArrowLeft' || k === 'ArrowDown' ? splitPct - step : k === 'ArrowRight' || k === 'ArrowUp' ? splitPct + step
+    : k === 'PageDown' ? splitPct - 10 : k === 'PageUp' ? splitPct + 10 : k === 'Home' ? 0 : k === 'End' ? 100 : null;
+  if (next === null) return; e.preventDefault(); setSplit(next);
+});
+const dragTo = e => { const r = pair.getBoundingClientRect(); setSplit((e.clientX - r.left) / r.width * 100); };
+split.addEventListener('pointerdown', e => { split.setPointerCapture(e.pointerId); split.classList.add('drag'); split.focus({ preventScroll: true }); dragTo(e); e.preventDefault(); });
+split.addEventListener('pointermove', e => { if (split.hasPointerCapture(e.pointerId)) dragTo(e); });
+const endDrag = e => { split.classList.remove('drag'); if (split.hasPointerCapture(e.pointerId)) split.releasePointerCapture(e.pointerId); };
+split.addEventListener('pointerup', endDrag); split.addEventListener('pointercancel', endDrag);
+document.querySelectorAll('#cmpmode button').forEach(b => b.addEventListener('click', () => {
+  const slider = b.dataset.mode === 'slider';
+  pair.classList.toggle('slider', slider); split.hidden = !slider;
+  document.querySelectorAll('#cmpmode button').forEach(x => x.setAttribute('aria-checked', String(x === b)));
+  requestAnimationFrame(() => { renderCompare(); });
+}));
+
+window.__adt = { loadPreset, setSplit, get splitPct() { return splitPct; }, openAbout, viewerA, viewerB, viewer, params, get building() { return building; }, get check() { return check; } };
 renderAbout(null);
 update();
 setOriginal('starting design', building.params);

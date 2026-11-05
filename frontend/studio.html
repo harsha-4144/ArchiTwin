@@ -11,7 +11,7 @@
 </head>
 <body data-page="studio">
 <header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
-<p class="note" id="note"><noscript>The studio needs JavaScript. </noscript>Simplified teaching model: no live-data link. Material numbers are rounded assumptions, not a structural safety check.</p>
+<p class="note" id="note"><noscript><strong>The studio needs JavaScript to run.</strong> Without it you can read this page and the other pages, but the 3D model, sliders and calculations are not available. </noscript>Simplified teaching model: no live-data link. Material numbers are rounded assumptions, not a structural safety check.</p>
 <main id="main" class="studio">
   <section class="card" id="params"><details class="fold" open><summary><h2><b class="badge">1</b>Design Parameters</h2></summary>
     <div class="row" id="presetrow"><label for="preset">Design alternative</label><select id="preset" aria-label="Design alternative"></select></div><p class="hint" id="presetblurb"></p><div id="controls"></div></details></section>
@@ -20,49 +20,55 @@
     <h2><b class="badge">2</b>Interactive Building Model</h2>
     <div class="bar">
       <div class="seg" id="layers" role="radiogroup" aria-label="Layer"></div>
-      <label class="chk"><input type="checkbox" id="cmap"> Deformation colour map</label>
+      <label class="chk"><input type="checkbox" id="cmap"> Colour map</label>
       <button id="checkall" type="button" class="btn btn-secondary" title="Test every beam and colour it green (pass) or red (fail) in the model">Check all beams</button>
-      <button id="reset" type="button" class="btn btn-secondary">Reset view</button>
     </div>
-    <div id="view"></div>
+    <div id="view" aria-describedby="tip"><p class="state" id="viewstate" role="status">Loading the 3D view&hellip;</p><noscript><p class="state">The 3D model needs JavaScript and WebGL. Without JavaScript this area stays empty.</p></noscript></div>
+    <div class="vfoot"><label for="partpick">Pick a part</label><select id="partpick" aria-label="Pick a part to select it"></select>
+      <button id="reset" type="button" class="btn btn-secondary">Reset view</button>
+      <span class="bendnote" id="bendnote">Bending shown &times;30: drawing only, the numbers are exact.</span></div>
     <div id="legend" hidden>
       <span>Beam deflection as share of limit (limit = span ÷ 250)</span>
       <i class="grad"></i><span class="ticks"><em>0%</em><em>50%</em><em>100%+</em></span>
     </div>
     <div id="matlegend" hidden></div>
-    <p class="hint">Drag to orbit, scroll to zoom, click a part for details. Use the Structure layer to pick parts hidden behind walls.</p>
+    <p class="hint">Drag to orbit, scroll to zoom, hover or click a part for details. Keyboard: choose a part in the list above. Use the Structure layer for parts hidden behind walls.</p>
     <p class="err" id="err" role="alert"></p>
   </section>
   <section class="card" id="cmpcard"><details class="fold" open><summary><h2><b class="badge">3</b>Original vs Modified</h2></summary>
     <div class="bar"><div class="seg layerseg" role="radiogroup" aria-label="Layer for comparison"></div>
       <button id="setorig" type="button" class="btn btn-secondary">Set current design as original</button>
+      <div class="seg" id="cmpmode" role="radiogroup" aria-label="Comparison view"><button type="button" role="radio" data-mode="slider" aria-checked="true">Slider</button><button type="button" role="radio" data-mode="side" aria-checked="false">Side by side</button></div>
       <span class="hl-key"><i></i>Orange glow = size or count changed; colour = material</span></div>
     <div id="cmplegend" hidden></div>
-    <div class="pair">
-      <figure><figcaption><b>Original design</b> (before) <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>
-      <figure><figcaption><b>Modified design</b> (after, current)</figcaption><div class="view2" id="viewB"></div></figure>
+    <div class="pair slider" id="pair" style="--p:50%">
+      <figure><figcaption><b>Original</b> (before) <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>
+      <figure><figcaption><b>Modified</b> (after, current)</figcaption><div class="view2" id="viewB"></div></figure>
+      <div id="split" role="slider" tabindex="0" aria-label="Before and after divider" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="50% original, 50% modified"><span class="grip" aria-hidden="true"></span></div>
     </div>
-    <p class="hint">Each view orbits on its own. Only parts whose size, count or position changed glow orange; when the material differs, every part is coloured by its material.</p>
+    <p class="hint">Drag the handle or use the left and right arrow keys to reveal more of the original or the modified design. Both views turn together. Only parts whose size, count or position changed glow orange; when the material differs, every part is coloured by its material.</p>
   </details></section>
     <section class="card" id="analysis"><details class="fold" open><summary><h2><b class="badge">4</b>Analysis</h2></summary><div id="anbody"></div></details></section>
   </div>
   <aside id="right">
     <section class="card" id="results"><h2><b class="badge">5</b>Expected Results</h2><div id="resbody"></div></section>
     <section class="card" id="details"><h2><b class="badge">6</b>Selected Component</h2><div id="detbody"><p class="muted hintbox">Click any beam, column, slab, wall or the roof in the 3D view to see its size, material, weight and cost.</p></div></section>
+    <section class="card" id="bendcard"><h2><b class="badge">7</b>Beam Bending</h2><div id="bendbody"></div></section>
   </aside>
-  <section class="card bottom" id="matcard"><details class="fold" open><summary><h2><b class="badge">7</b>Material Comparison</h2></summary><div id="matbody"></div></details></section>
-  <section class="card bottom" id="aboutcard" tabindex="-1"><details class="fold" open><summary><h2><b class="badge">8</b>About This Result</h2></summary><div id="aboutbody"></div></details></section>
-  <section class="card wide" id="versions"><details class="fold" open><summary><h2><b class="badge">9</b>Saved Designs</h2></summary>
+  <section class="card bottom" id="matcard"><details class="fold" open><summary><h2><b class="badge">8</b>Material Comparison</h2></summary><div id="matbody"></div></details></section>
+  <section class="card bottom" id="aboutcard" tabindex="-1"><details class="fold" open><summary><h2><b class="badge">9</b>About This Result</h2></summary><div id="aboutbody"></div></details></section>
+  <section class="card wide" id="versions"><details class="fold" open><summary><h2><b class="badge">10</b>Saved Designs</h2></summary>
     <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn btn-primary">Save design</button><span id="vmsg" role="status"></span></div>
     <div id="vlist"></div>
   </details></section>
-  <section class="card wide" id="cause"><details class="fold" open><summary><h2><b class="badge">10</b>Cause and Effect</h2></summary><div id="cebody" aria-live="polite"></div></details></section>
-  <section class="card wide" id="vcompare"><details class="fold" open><summary><h2><b class="badge">11</b>Compare Two Versions</h2></summary>
+  <section class="card wide" id="cause"><details class="fold" open><summary><h2><b class="badge">11</b>Cause and Effect</h2></summary><div id="cebody" aria-live="polite"></div></details></section>
+  <section class="card wide" id="vcompare"><details class="fold" open><summary><h2><b class="badge">12</b>Compare Two Versions</h2></summary>
     <div class="bar"><label>A <select id="vcA" aria-label="Version A"></select></label><label>B <select id="vcB" aria-label="Version B"></select></label></div>
     <div id="vcbody"></div>
   </details></section>
 </main>
 <footer id="site-footer"></footer>
+<script>setTimeout(function(){var s=document.getElementById("viewstate");if(s&&!window.__adt){s.textContent="The studio did not finish loading. Check that the server is running, then reload the page."}},8000)</script>
 <script type="module" src="/js/shell.mjs"></script>
 <script type="module" src="/app.js"></script>
 </body>
