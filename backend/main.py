@@ -15,7 +15,7 @@ from typing import Any, Dict
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
@@ -105,8 +105,56 @@ def health():
     return {"status": "ok"}
 
 
+def wants_html(request: Request) -> bool:
+    """True only when the Accept header explicitly prefers text/html over JSON (browser navigation).
+    fetch(), curl and API clients send */* or application/json and keep getting JSON."""
+    q = {}
+    for part in request.headers.get("accept", "").split(","):
+        bits = [b.strip() for b in part.split(";")]
+        if not bits[0]:
+            continue
+        w = 1.0
+        for b in bits[1:]:
+            if b.startswith("q="):
+                try:
+                    w = float(b[2:])
+                except ValueError:
+                    w = 0.0
+        q[bits[0].lower()] = w
+    html = q.get("text/html", 0.0)
+    other = max(q.get("application/json", 0.0), q.get("application/*", 0.0), q.get("*/*", 0.0))
+    return html > 0 and html >= other and html > q.get("application/json", 0.0)
+
+
+def page(name: str) -> FileResponse:
+    return FileResponse(os.path.join(FRONTEND, name), media_type="text/html; charset=utf-8", headers={"Vary": "Accept"})
+
+
+@app.get("/", include_in_schema=False)
+def home_page():
+    return page("home.html")
+
+
+@app.get("/studio", include_in_schema=False)
+def studio_page():
+    return page("studio.html")
+
+
+@app.get("/learn", include_in_schema=False)
+def learn_page():
+    return page("learn.html")
+
+
+@app.get("/about", include_in_schema=False)
+def about_page():
+    return page("about.html")
+
+
 @app.get("/materials")
-def materials():
+def materials(request: Request, response: Response):
+    if wants_html(request):
+        return page("materials.html")
+    response.headers["Vary"] = "Accept"
     con = connect()
     rows = [dict(r) for r in con.execute("SELECT * FROM materials ORDER BY id")]
     con.close()
@@ -114,7 +162,10 @@ def materials():
 
 
 @app.get("/designs")
-def list_designs():
+def list_designs(request: Request, response: Response):
+    if wants_html(request):
+        return page("designs.html")
+    response.headers["Vary"] = "Accept"
     con = connect()
     rows = [_design(r) for r in con.execute("SELECT * FROM designs ORDER BY id")]
     con.close()
@@ -134,8 +185,18 @@ def create_design(d: DesignIn):
     return _design(r)
 
 
+INT64 = (-2**63, 2**63 - 1)
+
+
+def _unknown(design_id: int) -> bool:
+    """SQLite INTEGER is int64; anything outside cannot exist (and would raise OverflowError)."""
+    return not INT64[0] <= design_id <= INT64[1]
+
+
 @app.get("/designs/{design_id}")
 def get_design(design_id: int):
+    if _unknown(design_id):
+        raise HTTPException(404, "design not found")
     con = connect()
     r = con.execute("SELECT * FROM designs WHERE id=?", (design_id,)).fetchone()
     con.close()
@@ -146,6 +207,8 @@ def get_design(design_id: int):
 
 @app.delete("/designs/{design_id}", status_code=204)
 def delete_design(design_id: int):
+    if _unknown(design_id):
+        raise HTTPException(404, "design not found")
     con = connect()
     with con:
         n = con.execute("DELETE FROM designs WHERE id=?", (design_id,)).rowcount
@@ -156,8 +219,5 @@ def delete_design(design_id: int):
 
 
 # Static frontend last, so API routes take priority.
-os.makedirs(FRONTEND, exist_ok=True)
-if not os.path.exists(os.path.join(FRONTEND, "index.html")):
-    with open(os.path.join(FRONTEND, "index.html"), "w") as f:
-        f.write("<!doctype html><title>ADT</title><h1>ADT placeholder</h1>")
-app.mount("/", StaticFiles(directory=FRONTEND, html=True), name="frontend")
+# Pages are explicit routes above; StaticFiles serves css/, js/, vendor/ and the .mjs modules.
+app.mount("/", StaticFiles(directory=FRONTEND), name="frontend")

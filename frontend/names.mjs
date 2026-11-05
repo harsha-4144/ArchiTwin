@@ -4,6 +4,7 @@
 export function componentName(ref) {
   const id = typeof ref === 'string' ? ref : ref && ref.id;
   if (!id) return '';
+  if (ref && typeof ref === 'object' && ref.type === 'feature') return `${ref.name} (decorative)`;
   let m;
   if ((m = id.match(/^beam-f(\d+)-([xz])(\d+)-(\d+)$/))) {
     const fl = Number(m[1]) + 1, i = Number(m[3]), j = Number(m[4]);

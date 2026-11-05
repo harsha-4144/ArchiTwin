@@ -1,7 +1,9 @@
 # ArchiTwin
 *Architectural Digital Twin cum Simulator*
 
-A browser app for architecture students. Pick a small building, change floors, bays, spans, material, beam size, load, roof, doors and windows, and see the 3D model, beam checks, weight, cost and cause-and-effect update at once. Designs can be saved and compared.
+A browser app for architecture students. Pick one of six houses, change floors, bays, spans, material, beam size, load, roof, doors and windows, and see the 3D model bend, the beam checks, weight, cost and cause-and-effect update at once. Designs can be saved and compared. It works offline: no CDN, fonts or images are loaded from the internet.
+
+![Home](docs/screenshots/home-1366x768.png)
 
 **Limits.** A simplified virtual model with no live-data link. It uses the standard beam deflection formula (solid rectangle, even load, limit span/250) with rounded teaching values. It is for learning, not for designing a real building.
 
@@ -21,8 +23,8 @@ node --test
 ```
 
 ## Demo (3 minutes)
-1. Choose **Two-storey house (demo)**. Rotate it, use the Structure layer, click a column and a wall.
-2. Press **Check all beams**: some turn red. Click one, then set **Beam depth h** to 0.35 m or switch to steel until all turn green.
+1. Choose **Twin-Gable Family Home (demo)**. Rotate it, switch to the **Structure** layer and click a column, then switch to **Architecture** and click a wall.
+2. Press **Check all beams** above the 3D view: some turn red. Click one, then drag the **Beam depth h** slider (left panel, Structure) to 0.45 m, or set **Material** to Steel, until all turn green.
 3. Open **Material Comparison**.
 4. Save the original and the modified design and view them side by side. Restart `./run.sh`: both are still there.
 5. Open http://localhost:8000/docs and run `GET /designs`.
@@ -30,7 +32,7 @@ node --test
 If anything fails, open `prototype/digital-twin-simulator.html` (single beam, no server).
 
 ## Folders
-`backend/` FastAPI + SQLite (stores data, never calculates) · `frontend/` plain JS + Three.js (`calc.mjs` has all the maths) · `prototype/` fallback demo · `docs/` plan, source documents, `SOURCES.md` for material values.
+`backend/` FastAPI + SQLite (stores data, never calculates) · `frontend/` plain JS + Three.js (`calc.mjs` has all the maths) · `prototype/` fallback demo · `docs/` plan, `DESIGN.md` (design system), `DECISIONS_LOG.md`, `SOURCES.md` (material values) and screenshots.
 
 ## Known limitations
 - Beam bending only: no shear, columns, foundations, wind or earthquake.

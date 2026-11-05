@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArchiTwin: build a house, bend a beam, see why it holds</title>
+<meta name="description" content="ArchiTwin is a teaching simulator for first-year architecture students: change a small building and see which beams sag too far.">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/pages.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+</head>
+<body data-page="home">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<main id="main">
+  <section class="container hero">
+    <div class="grid split-5-7 hero-grid">
+      <div class="hero-copy">
+        <h1 class="hero-title">Build a house, bend a beam, see why it holds</h1>
+        <p class="lead">ArchiTwin is a simulator for first-year architecture students. Change the size, material and span of a small building and watch which beams sag too far.</p>
+        <p class="muted">Every number is worked out in your browser and explained in plain words, so you learn the reason as well as the answer.</p>
+        <p><a class="btn btn-primary" href="/studio?preset=twin-gable">Open the studio</a></p>
+      </div>
+      <div>
+        <div class="stage hero-stage" id="hero-stage" role="group" aria-label="A two-storey timber family home with a gabled porch, turning slowly. Drag to turn it.">
+          <noscript><p class="pad">The 3D house needs JavaScript. <a href="/studio">Open the studio</a> to see it.</p></noscript>
+        </div>
+        <p class="stat-note" id="hero-cap">Twin-Gable Family Home: a two-storey timber house with shutters and a porch. Drag to turn it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="feat-h">
+    <h2 id="feat-h" class="sr-only">What you can do</h2>
+    <div class="grid cols-3 stagger" data-reveal data-reveal-children>
+      <a class="card" href="/studio"><span class="ficon ill" aria-hidden="true" id="i1"></span><h3>Change a design</h3><p>Set floors, bays, spans, roof and material. The 3D model rebuilds as you move each slider.</p></a>
+      <a class="card" href="/learn"><span class="ficon ill" aria-hidden="true" id="i2"></span><h3>Check every beam</h3><p>Each beam passes or fails the span/250 sag limit, with a plain note on what to change.</p></a>
+      <a class="card" href="/designs"><span class="ficon ill" aria-hidden="true" id="i3"></span><h3>Compare and save</h3><p>Save versions, set two side by side, and see which numbers moved and why.</p></a>
+    </div>
+  </section>
+
+  <section class="band section" aria-labelledby="how-h">
+    <div class="container">
+      <h2 id="how-h" data-reveal>How it works</h2>
+      <ol class="steps" data-reveal data-reveal-children>
+        <li><span class="badge" aria-hidden="true">1</span><div><h3>Pick a starting design</h3><p>Choose one of six houses, from a small cottage to a community hall.</p></div></li>
+        <li><span class="badge" aria-hidden="true">2</span><div><h3>Change one thing</h3><p>Make a beam deeper, switch timber to steel, or shorten a span.</p></div></li>
+        <li><span class="badge" aria-hidden="true">3</span><div><h3>Read the result</h3><p>See which beams now pass, how far they bend, and why.</p></div></li>
+      </ol>
+      <p data-reveal><a href="/learn">Read how deflection works</a></p>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="not-h">
+    <div class="grid split-4-8" data-reveal>
+      <h2 id="not-h">What it is not</h2>
+      <p class="lead">A teaching aid. It checks one thing, how far beams sag, using simplified maths and rounded material values. It is not a structural safety check, so ask an engineer about any real building. <a href="/about">See the sources and limits</a>.</p>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"><noscript><div class="container"><p>Simplified model, no live-data link. Not a structural safety check. <a href="https://github.com/harsha-4144/ArchiTwin">Source on GitHub</a></p></div></noscript></footer>
+<script type="module" src="/js/shell.mjs"></script>
+<script type="module" src="/js/home.mjs"></script>
+</body>
+</html>

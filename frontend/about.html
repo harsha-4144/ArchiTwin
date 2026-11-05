@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About | ArchiTwin</title>
+<meta name="description" content="What ArchiTwin is, what it is not, and where its material numbers come from.">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body data-page="about">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<main id="main">
+  <section class="page-head"><div class="container">
+    <h1>About ArchiTwin</h1>
+    <p class="lead">ArchiTwin stands for Architectural Digital Twin cum Simulator. It is a small teaching tool for first-year architecture students.</p>
+  </div></section>
+
+  <section class="container section" aria-labelledby="what-h">
+    <div class="grid split-5-7">
+      <h2 id="what-h" class="h-badge"><span class="badge" aria-hidden="true">1</span>What it is</h2>
+      <div class="prose">
+        <p>You build a simple frame building, change its sizes and materials, and see which beams bend more than the allowed limit. Every calculation runs in your browser. The server only stores the designs you save.</p>
+        <p>It is a digital twin in the sense of a live model you can change and compare. It has no link to live data from a real building or sensor.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="limits-h">
+    <div class="grid split-5-7">
+      <h2 id="limits-h" class="h-badge"><span class="badge" aria-hidden="true">2</span>What it is not</h2>
+      <div class="prose">
+        <p><strong>Simplified model, no live-data link. Not a structural safety check.</strong></p>
+        <h3>Known limits</h3>
+        <ul>
+          <li>Only sagging of beams is checked. Strength, column buckling, connections, wind, earthquake and foundations are not.</li>
+          <li>Each beam is a solid rectangle of one material, with an evenly spread load.</li>
+          <li>Slab and wall weight is not added to the beam load.</li>
+          <li>The daylight indicator is window area divided by floor area; it is not a daylight simulation.</li>
+          <li>Cost and weight are rough totals from rounded rates, not a quantity survey.</li>
+        </ul>
+        <p>Ask a structural engineer for any real building, anything people will use, or any decision about safety, cost or permits.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section" id="sources" aria-labelledby="src-h">
+    <h2 id="src-h" class="h-badge"><span class="badge" aria-hidden="true">3</span>Sources and assumptions</h2>
+    <p>Values are rounded teaching assumptions, not design data. Costs are rough. "Checked" means the page below was opened and shows a number or range near ours; the rounded value is ours.</p>
+    <div class="tablewrap" tabindex="0" role="region" aria-label="Sources and assumptions table">
+      <table class="data src-table">
+        <caption>Where each material number comes from</caption>
+<thead><tr><th scope="col">Material</th><th scope="col">Young&#x27;s modulus E</th><th scope="col">Density</th><th scope="col">Thermal conductivity</th><th scope="col">Cost per m3</th><th scope="col">Durability</th></tr></thead>
+<tbody>
+<tr><th scope="row">Timber</th><td>11 GPa. Checked: a Python library implementing EN 338:2016 (<a href="https://blueprints.readthedocs.io/en/stable/API%20reference/codes/eurocode/en_338_2016/chapter_5_classification_of_structural_timber/table_1/" rel="noopener">https://blueprints.readthedocs.io/en/stable/API%20reference/codes/eurocode/en_338_2016/chapter_5_classification_of_structural_timber/table_1/</a>) gives C24 mean bending modulus 11.0 (N/mm2 = GPa x 1000 as listed). Only C24 is shown. Engineering ToolBox (<a href="https://www.engineeringtoolbox.com/young-modulus-d_417.html" rel="noopener">https://www.engineeringtoolbox.com/young-modulus-d_417.html</a>) lists 9 to 13 GPa for pine, oak, Douglas fir.</td><td>600 kg/m3. Engineering ToolBox seasoned wood (<a href="https://www.engineeringtoolbox.com/wood-density-d_40.html" rel="noopener">https://www.engineeringtoolbox.com/wood-density-d_40.html</a>): pines 350 to 850, oak 600 to 900. EN 338 C24 mean is 420 (same library page), so 600 is on the heavy side: ours is a rounded middle value.</td><td>0.13 W/mK. Engineering ToolBox (<a href="https://engineeringtoolbox.com/thermal-conductivity-d_429.html" rel="noopener">https://engineeringtoolbox.com/thermal-conductivity-d_429.html</a>): softwoods 0.12, hardwoods 0.16, pine 0.14 to 0.15.</td><td>typical teaching value, not verified</td><td>typical teaching value, not verified</td></tr>
+<tr><th scope="row">Steel</th><td>200 GPa. Checked: Engineering ToolBox (<a href="https://www.engineeringtoolbox.com/young-modulus-d_417.html" rel="noopener">https://www.engineeringtoolbox.com/young-modulus-d_417.html</a>) gives 200 GPa for structural steel ASTM A36.</td><td>7850 kg/m3. Engineering ToolBox (<a href="https://www.engineeringtoolbox.com/density-solids-d_1265.html" rel="noopener">https://www.engineeringtoolbox.com/density-solids-d_1265.html</a>) gives 7820; ours is the common rounded 7850.</td><td>typical teaching value, not verified (the Engineering ToolBox page lists steel but shows no number)</td><td>typical teaching value, not verified</td><td>typical teaching value, not verified</td></tr>
+<tr><th scope="row">Concrete</th><td>25 GPa. Checked: IS 456:2000 clause 6.2.3.1 Ec = 5000 sqrt(fck) MPa, as quoted on a secondary site (<a href="https://infralens.in/code/IS-456-2000" rel="noopener">https://infralens.in/code/IS-456-2000</a>), gives 25 GPa for M25 (the BIS text itself was not opened). Engineering ToolBox shows 17 to 30 GPa.</td><td>2400 kg/m3. Engineering ToolBox dense concrete 2000 to 2400 (<a href="https://www.engineeringtoolbox.com/density-solids-d_1265.html" rel="noopener">https://www.engineeringtoolbox.com/density-solids-d_1265.html</a>). IS 456 reinforced concrete unit weight 25 kN/m3 (about 2500 kg/m3), same secondary site.</td><td>1.4 W/mK. Engineering ToolBox dense concrete 1.0 to 1.8 (<a href="https://engineeringtoolbox.com/thermal-conductivity-d_429.html" rel="noopener">https://engineeringtoolbox.com/thermal-conductivity-d_429.html</a>).</td><td>typical teaching value, not verified</td><td>typical teaching value, not verified</td></tr>
+</tbody>
+      </table>
+    </div>
+    <p class="stat-note">Cost (INR 30,000 / 470,000 / 20,000 per m3) is not taken from any Schedule of Rates. Durability (Medium / High / High) is a qualitative assumption.</p>
+  </section>
+
+  <section class="container section" aria-labelledby="repo-h">
+    <div class="grid split-5-7">
+      <h2 id="repo-h" class="h-badge"><span class="badge" aria-hidden="true">4</span>Source code</h2>
+      <div class="prose">
+        <p>The code is open and runs offline with one command. Read it, run it, or report a problem.</p>
+        <p><a class="btn btn-secondary" href="https://github.com/harsha-4144/ArchiTwin" rel="noopener">View the repository</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"><noscript><div class="container"><p>Simplified model, no live-data link. Not a structural safety check. <a href="https://github.com/harsha-4144/ArchiTwin">Source on GitHub</a></p></div></noscript></footer>
+<script type="module" src="/js/shell.mjs"></script>
+</body>
+</html>

@@ -7,3 +7,5 @@ node_modules/
 *.db
 adt.db
 .pytest_cache/
+.claude/skills/
+skills-lock.json

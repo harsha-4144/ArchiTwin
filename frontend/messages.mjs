@@ -67,6 +67,8 @@ export const ABOUT_CONTEXT = {
 export const HELP = {
   bay: 'A bay is one rectangular grid cell between four columns.',
   cantilever: 'A cantilever is a beam fixed at one end and free at the other, like a balcony.',
+  grid: 'Part names use the grid: grid column 1 is the first column line counted from the west (left) wall, and row 1 is the first line counted from the north (back) wall.',
+  simply: 'Simply supported means the beam rests on a support at each end.',
   stiffer: 'Stiffer means it bends less under the same load (steel is stiffer than timber).',
 };
 export const SELECT_HINT = 'Click any beam, column, slab, wall or the roof in the 3D view to see its size, material, weight and cost.';

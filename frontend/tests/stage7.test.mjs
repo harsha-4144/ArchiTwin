@@ -7,10 +7,10 @@ import { beamMessage, buildingMessage, ABOUT, ABOUT_CONTEXT, ABOUT_STATEMENT } f
 
 const run = p => { const b = generateBuilding(p.params); return { b, c: checkAll(b.components, { load: p.params.load, beamType: 'simply', material: p.params.material }) }; };
 
-test('four presets, distinct, all valid and run checkAll', () => {
-  assert.equal(PRESETS.length, 4);
-  assert.deepEqual(PRESETS.map(p => p.name.split(' (')[0]), ['Small house', 'Two-storey house', 'Hall', 'Shed']);
-  assert.equal(new Set(PRESETS.map(p => JSON.stringify(p.params))).size, 4);
+test('six presets, distinct, all valid and run checkAll', () => {
+  assert.equal(PRESETS.length, 6);
+  assert.deepEqual(PRESETS.map(p => p.name), ['Sunrise Cottage', 'Urban Box', 'Hill Retreat', 'Twin-Gable Family Home', 'Community Hall', 'Garden Studio']);
+  assert.equal(new Set(PRESETS.map(p => JSON.stringify(p.params))).size, 6);
   assert.ok(new Set(PRESETS.map(p => p.params.roof_type)).size >= 3);
   assert.ok(new Set(PRESETS.map(p => p.params.material)).size >= 3);
   for (const p of PRESETS) {
@@ -21,7 +21,8 @@ test('four presets, distinct, all valid and run checkAll', () => {
 });
 test('demo preset has failing beams that go green when deeper or steel', () => {
   const demo = PRESETS.find(p => p.demo);
-  assert.equal(demo.id, 'twostorey');
+  assert.equal(demo.id, 'twin-gable');
+  assert.equal(PRESETS.filter(p => p.demo).length, 1);
   const { c } = run(demo);
   assert.ok(c.failCount > 0);
   const deeper = run({ params: { ...demo.params, beam_h: 0.5 } });
@@ -38,7 +39,7 @@ test('failing beam message says what to change', () => {
   const ms = beamMessage({ ...r, pass: false }, { material: 'steel', type: 'cantilever' });
   assert.ok(!/stiffer material/.test(ms) && /cantilever/.test(ms));
   assert.match(beamMessage({ ...r, pass: true, ratio: 0.5 }), /passes/);
-  const { c } = run(PRESETS[1]);
+  const { c } = run(PRESETS.find(p => p.demo));
   assert.match(buildingMessage(c, { material: 'timber' }), /Try a deeper beam/);
 });
 test('about content has all required parts', () => {

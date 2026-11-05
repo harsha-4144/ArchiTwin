@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Materials | ArchiTwin</title>
+<meta name="description" content="Timber, steel and concrete: what each property means and how the same beam behaves in each.">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body data-page="materials">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<main id="main">
+  <section class="page-head"><div class="container">
+    <h1>Materials</h1>
+    <p class="lead">Three materials, five properties each. Learn what the numbers mean, then bend the same beam in all three.</p>
+  </div></section>
+
+  <section class="container section" aria-labelledby="m-h">
+    <h2 id="m-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">1</span>The three materials</h2>
+    <noscript><p>The material cards, bars and sliders need JavaScript.</p></noscript>
+    <div class="grid cols-3 stagger" id="mat-cards" data-reveal data-reveal-children></div>
+    <p class="stat-note">All values are rounded teaching assumptions, not design data. <a href="/about#sources">See the sources</a>.</p>
+  </section>
+
+  <section class="container section" aria-labelledby="mean-h">
+    <div class="grid split-4-8">
+      <h2 id="mean-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">2</span>What the properties mean</h2>
+      <dl class="defs" id="meaning" data-reveal></dl>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="bars-h">
+    <h2 id="bars-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">3</span>Side by side</h2>
+    <p data-reveal>Each bar is scaled against the largest value in its group, so you can see the gap at a glance. The number beside the bar is the real value.</p>
+    <div class="grid cols-2 bars-grid" id="bars" data-reveal data-reveal-children></div>
+  </section>
+
+  <section class="band section" aria-labelledby="demo-h">
+    <div class="container">
+      <h2 id="demo-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">4</span>Bend the same beam in each material</h2>
+      <p data-reveal>Move a slider. The beam, the span and the load stay the same; only the material changes. A beam passes when it sags no more than span/250.</p>
+      <div class="grid split-4-8 demo" data-reveal>
+        <form id="demo-form" class="demo-form" onsubmit="return false" aria-label="Beam settings">
+          <div class="field"><div class="rowline"><label for="d-span">Span</label><output id="o-span" for="d-span"></output></div><input id="d-span" type="range" min="2" max="8" step="0.5" value="5"></div>
+          <div class="field"><div class="rowline"><label for="d-b">Beam width b</label><output id="o-b" for="d-b"></output></div><input id="d-b" type="range" min="0.1" max="0.6" step="0.05" value="0.2"></div>
+          <div class="field"><div class="rowline"><label for="d-h">Beam depth h</label><output id="o-h" for="d-h"></output></div><input id="d-h" type="range" min="0.15" max="0.9" step="0.05" value="0.3"></div>
+          <div class="field"><div class="rowline"><label for="d-load">Applied load</label><output id="o-load" for="d-load"></output></div><input id="d-load" type="range" min="0" max="50" step="1" value="12"></div>
+          <div class="field"><label for="d-type">Support</label><select id="d-type"><option value="simply">Simply supported</option><option value="cantilever">Cantilever</option></select></div>
+        </form>
+        <div aria-live="polite" id="demo-out"></div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"><noscript><div class="container"><p>Simplified model, no live-data link. Not a structural safety check. <a href="https://github.com/harsha-4144/ArchiTwin">Source on GitHub</a></p></div></noscript></footer>
+<script type="module" src="/js/shell.mjs"></script>
+<script type="module" src="/js/materials.mjs"></script>
+</body>
+</html>
