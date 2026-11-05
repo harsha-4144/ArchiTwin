@@ -26,7 +26,7 @@ export function createViewer(container, onPick) {
   const sun = new THREE.DirectionalLight(0xffffff, 1.1);
   sun.position.set(8, 14, 6);
   scene.add(sun);
-  const grid = new THREE.GridHelper(60, 60, 0x8f8264, 0xc4b794);
+  const grid = new THREE.GridHelper(30, 30, 0x8f8264, 0xc4b794);
   scene.add(grid);
 
   const unit = new THREE.BoxGeometry(1, 1, 1);            // shared by all box parts
@@ -54,9 +54,16 @@ export function createViewer(container, onPick) {
   new ResizeObserver(resize).observe(container);
 
   function frame(b) {
-    const g = b.grid, d = Math.max(g.totalX, g.totalZ, g.totalHeight);
-    controls.target.set(g.totalX / 2, g.totalHeight / 2, g.totalZ / 2);
-    camera.position.set(g.totalX / 2 + d * 1.2, g.totalHeight + d * 0.9, g.totalZ / 2 + d * 1.5);
+    const g = b.grid, cx = g.totalX / 2, cz = g.totalZ / 2;
+    const rise = Math.max(0, ...b.components.map(c => c.rise || 0));
+    const H = g.totalHeight + rise;
+    controls.target.set(cx, H / 2, cz);
+    const r = Math.hypot(g.totalX, g.totalZ, H) / 2;          // bounding-sphere radius
+    resize();
+    const vf = camera.fov * Math.PI / 360, hf = Math.atan(Math.tan(vf) * camera.aspect);
+    const fit = r / Math.sin(Math.min(vf, hf)) * 1.05;
+    const dir = new THREE.Vector3(1.2, 0.8, 1.5).normalize();
+    camera.position.copy(controls.target).addScaledVector(dir, fit);
     controls.update(); framed = true;
   }
 

@@ -48,7 +48,19 @@ def _num(v):
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 
+def _all_finite(v) -> bool:
+    if isinstance(v, float):
+        return math.isfinite(v)
+    if isinstance(v, dict):
+        return all(_all_finite(x) for x in v.values())
+    if isinstance(v, (list, tuple)):
+        return all(_all_finite(x) for x in v)
+    return True
+
+
 def validate_params(p: Dict[str, Any], materials) -> None:
+    if not _all_finite(p):
+        raise ValueError("params must not contain NaN or infinity")
     for k, (lo, hi, integer) in RANGES.items():
         if k in p:
             v = p[k]

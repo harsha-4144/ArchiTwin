@@ -67,3 +67,11 @@ def test_rejects_non_finite(client, raw, where):
         body = json.dumps({**GOOD, "params": {**GOOD["params"], where: 0}}).replace(f'"{where}": 0', f'"{where}": {raw}')
     r = client.post("/designs", content=body, headers={"content-type": "application/json"})
     assert r.status_code == 422
+
+
+@pytest.mark.parametrize("raw", ['{"floors": NaN}', '{"x": {"y": [1, Infinity]}}', '{"walls": {"t": 1e999}}',
+                                 '{"floors": 1, "roof": -Infinity}'])
+def test_nonfinite_params_422(client, raw):
+    body = ('{"name":"t","summary":{"pass":1},"params":' + raw + '}')
+    r = client.post("/designs", content=body, headers={"content-type": "application/json"})
+    assert r.status_code == 422
