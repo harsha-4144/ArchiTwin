@@ -5,20 +5,24 @@ A browser app for architecture students. Pick a small building, change its param
 **Limits (please read).** This is a *virtual model* of a design. It has **no live sensor or real-data link**. It uses the standard beam deflection formula with stated assumptions (solid rectangular section, evenly spread load, simple supports or cantilever, limit span/250). It is for learning, not for designing a real building. Material values are rounded teaching numbers.
 
 ## Requirements
-- Python 3.10+ (3.12 tested), Node 18+ (only for the tests), Linux/WSL/Mac or Windows.
-- No internet at runtime. Three.js is bundled in `frontend/vendor/`. The only internet use is a one-time `pip install` of fastapi and uvicorn (see below).
+- Python 3.10+ (3.12 tested), Node 18+ (only for the frontend tests), git, a modern browser with WebGL.
+- Linux, macOS, or Windows with WSL (recommended on Windows).
+- Internet is needed only once, for `pip install` of fastapi, uvicorn, pytest, httpx on the first run. Three.js is bundled in `frontend/vendor/`; nothing else is fetched at runtime.
 
-## Run (one command)
+## Install and run (fresh clone)
 ```
-./run.sh        # Linux / WSL / Mac
-run.bat         # Windows
+git clone <repo-url> adt && cd adt
+./run.sh        # Linux / macOS / WSL
 ```
-Then open http://localhost:8000. On the very first run `run.sh` creates `.venv` and installs `fastapi uvicorn pytest httpx` (internet needed once). On Windows create the venv yourself first: `python -m venv .venv` then `.venv\Scripts\pip install fastapi uvicorn pytest httpx`. The SQLite file `backend/adt.db` is created automatically (set `ADT_DB` to use another path). Stop with Ctrl+C.
+The first run creates `.venv` and installs the dependencies, then starts the server. Open http://localhost:8000. The SQLite file `backend/adt.db` is created automatically (to use another path, `export ADT_DB=/path/x.db` before `./run.sh`; a `.env` file is not read, see `.env.example`). Stop with Ctrl+C.
+
+`run.bat` (native Windows) is **untested**. WSL is recommended on Windows. If you try `run.bat`, first create the venv: `python -m venv .venv` then `.venv\Scripts\pip install fastapi uvicorn pytest httpx`.
 
 ## Tests
+Run `./run.sh` once first (it creates `.venv`; stop it with Ctrl+C), or create it yourself: `python3 -m venv .venv && .venv/bin/pip install fastapi uvicorn pytest httpx`.
 ```
-python -m pytest                          # backend (use .venv/bin/python if not activated)
-node --test                               # frontend: calculations, generator, messages (run from the repo root)
+.venv/bin/python -m pytest                # backend (from the repo root)
+node --test                               # frontend: calculations, generator, messages (from the repo root)
 ```
 Use plain `node --test` from the repo root (Node 18+; it finds `frontend/tests/*.test.mjs` by itself). Do not use `node --test frontend/tests`: it fails on Node 22.
 

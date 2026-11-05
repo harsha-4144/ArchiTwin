@@ -4,3 +4,6 @@ __pycache__/
 backend/adt.db
 node_modules/
 .env
+*.db
+adt.db
+.pytest_cache/
