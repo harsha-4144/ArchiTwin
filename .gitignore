@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+backend/adt.db
+node_modules/
+.env
