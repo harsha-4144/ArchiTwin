@@ -18,9 +18,9 @@ Then open http://localhost:8000. On the very first run `run.sh` creates `.venv` 
 ## Tests
 ```
 python -m pytest                          # backend (use .venv/bin/python if not activated)
-node --test frontend/tests/*.test.mjs     # calculations and building generator
+node --test                               # frontend: calculations, generator, messages (run from the repo root)
 ```
-Use the glob form; the bare directory form fails on Node 22.
+Use plain `node --test` from the repo root (Node 18+; it finds `frontend/tests/*.test.mjs` by itself). Do not use `node --test frontend/tests`: it fails on Node 22.
 
 ## Folder map
 - `backend/` FastAPI + SQLite. Stores materials and saved designs. It never calculates.

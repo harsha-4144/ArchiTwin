@@ -23,3 +23,6 @@ The UI must follow the PDF images in docs/reference/ (layout, panels, colours: c
 
 ## Layout
 backend/ (FastAPI + SQLite)  frontend/ (Three.js, plain JS)  prototype/ (earlier working single-file version: reuse its 3D code, and keep it as the fallback demo)  docs/
+
+## Tests
+Backend: `.venv/bin/python -m pytest`. Frontend: `node --test` from the repo root (not `node --test frontend/tests`, which fails on Node 22). Both must pass before every commit.
