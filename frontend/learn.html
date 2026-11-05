@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn | ArchiTwin</title>
+<meta name="description" content="How beam deflection works, the formulas ArchiTwin uses, a worked example and a glossary.">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body data-page="learn">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<main id="main">
+  <section class="page-head"><div class="container">
+    <h1>Learn</h1>
+    <p class="lead">How to read a beam check: what deflection is, why span/250 is the limit, and the formulas behind every number.</p>
+  </div></section>
+
+  <section class="container section" aria-labelledby="def-h">
+    <div class="grid split-5-7">
+      <h2 id="def-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">1</span>What deflection is</h2>
+      <div class="prose" data-reveal>
+        <p class="lead" id="explainer"></p>
+        <p>A floor that sags too much cracks plaster, jams doors and feels bouncy. Long before a beam is near breaking, it can already be too flexible to use. That is why this tool checks sag, not strength.</p>
+        <p>Three things control how far a beam bends: how long it spans, how deep and wide its section is, and how stiff its material is. Span matters most, because it is raised to the fourth power in the formula. Depth matters next, because it is cubed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="form-h">
+    <div class="grid split-5-7">
+      <h2 id="form-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">2</span>The formulas</h2>
+      <div data-reveal data-reveal-children>
+        <h3>Stiffness of the section</h3>
+        <code class="formula">I = b × h³ / 12</code>
+        <p>I is the second moment of area of a solid rectangle, with width b and depth h in metres. Doubling the depth makes the section eight times stiffer.</p>
+        <h3>Weight of the beam itself</h3>
+        <code class="formula">self weight (kN/m) = density × 9.81 × b × h / 1000</code>
+        <p>The beam's own weight is added to the load you apply.</p>
+        <h3>Sag of a simply supported beam</h3>
+        <code class="formula">deflection = 5 × w × L⁴ / (384 × E × I)</code>
+        <h3>Sag of a cantilever</h3>
+        <code class="formula">deflection = w × L⁴ / (8 × E × I)</code>
+        <p>Here w is the total load per metre (applied plus self weight), L is the span, and E is the material's stiffness. A cantilever sags far more than a simply supported beam of the same size, because only one end is held.</p>
+        <h3>The limit</h3>
+        <code class="formula">allowed sag = L / 250</code>
+        <p>A beam passes when its sag is no more than the span divided by 250. A 5 m span (5000 mm) may sag 20 mm.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band section" aria-labelledby="ex-h">
+    <div class="container">
+      <h2 id="ex-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">3</span>A worked example</h2>
+      <div id="worked" data-reveal></div>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="gl-h">
+    <div class="grid split-4-8">
+      <div data-reveal>
+        <h2 id="gl-h" class="h-badge"><span class="badge" aria-hidden="true">4</span>Glossary</h2>
+        <div class="field"><label for="gl-q">Search the glossary</label><input type="search" id="gl-q" autocomplete="off" aria-controls="gl-list"></div>
+        <p class="stat-note" id="gl-count" role="status"></p>
+      </div>
+      <dl class="defs" id="gl-list" data-reveal></dl>
+    </div>
+  </section>
+
+  <section class="container section" aria-labelledby="as-h">
+    <div class="grid split-4-8">
+      <h2 id="as-h" class="h-badge" data-reveal><span class="badge" aria-hidden="true">5</span>Assumptions and limits</h2>
+      <div id="assume" data-reveal></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"><noscript><div class="container"><p>Simplified model, no live-data link. Not a structural safety check. <a href="https://github.com/harsha-4144/ArchiTwin">Source on GitHub</a></p></div></noscript></footer>
+<script type="module" src="/js/shell.mjs"></script>
+<script type="module" src="/js/learn.mjs"></script>
+</body>
+</html>

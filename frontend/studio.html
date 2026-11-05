@@ -3,17 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArchiTwin: Architectural Digital Twin cum Simulator</title>
-<link rel="stylesheet" href="style.css">
-<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+<title>Studio | ArchiTwin</title>
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/studio.css">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
 </head>
-<body>
-<header>
-  <h1>ArchiTwin <span>Architectural Digital Twin cum Simulator</span></h1>
-  <p class="tag">Explore &middot; Modify &middot; Compare &middot; Learn</p>
-</header>
-<p class="note" id="note">Simplified teaching model: no live-data link. Material numbers are rounded assumptions, not a structural safety check.</p>
-<main>
+<body data-page="studio">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<p class="note" id="note"><noscript>The studio needs JavaScript. </noscript>Simplified teaching model: no live-data link. Material numbers are rounded assumptions, not a structural safety check.</p>
+<main id="main" class="studio">
   <section class="card" id="params"><details class="fold" open><summary><h2><b class="badge">1</b>Design Parameters</h2></summary>
     <div class="row" id="presetrow"><label for="preset">Design alternative</label><select id="preset" aria-label="Design alternative"></select></div><p class="hint" id="presetblurb"></p><div id="controls"></div></details></section>
   <div id="center">
@@ -22,8 +21,8 @@
     <div class="bar">
       <div class="seg" id="layers" role="radiogroup" aria-label="Layer"></div>
       <label class="chk"><input type="checkbox" id="cmap"> Deformation colour map</label>
-      <button id="checkall" type="button" title="Test every beam and colour it green (pass) or red (fail) in the model">Check all beams</button>
-      <button id="reset" type="button">Reset view</button>
+      <button id="checkall" type="button" class="btn btn-secondary" title="Test every beam and colour it green (pass) or red (fail) in the model">Check all beams</button>
+      <button id="reset" type="button" class="btn btn-secondary">Reset view</button>
     </div>
     <div id="view"></div>
     <div id="legend" hidden>
@@ -36,7 +35,7 @@
   </section>
   <section class="card" id="cmpcard"><details class="fold" open><summary><h2><b class="badge">3</b>Original vs Modified</h2></summary>
     <div class="bar"><div class="seg layerseg" role="radiogroup" aria-label="Layer for comparison"></div>
-      <button id="setorig" type="button" class="btn">Set current design as original</button>
+      <button id="setorig" type="button" class="btn btn-secondary">Set current design as original</button>
       <span class="hl-key"><i></i>Orange glow = size or count changed; colour = material</span></div>
     <div id="cmplegend" hidden></div>
     <div class="pair">
@@ -54,7 +53,7 @@
   <section class="card bottom" id="matcard"><details class="fold" open><summary><h2><b class="badge">7</b>Material Comparison</h2></summary><div id="matbody"></div></details></section>
   <section class="card bottom" id="aboutcard" tabindex="-1"><details class="fold" open><summary><h2><b class="badge">8</b>About This Result</h2></summary><div id="aboutbody"></div></details></section>
   <section class="card wide" id="versions"><details class="fold" open><summary><h2><b class="badge">9</b>Saved Designs</h2></summary>
-    <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn">Save design</button><span id="vmsg" role="status"></span></div>
+    <div class="bar"><input type="text" id="vname" maxlength="120" placeholder="Design name" aria-label="Design name"><button id="vsave" type="button" class="btn btn-primary">Save design</button><span id="vmsg" role="status"></span></div>
     <div id="vlist"></div>
   </details></section>
   <section class="card wide" id="cause"><details class="fold" open><summary><h2><b class="badge">10</b>Cause and Effect</h2></summary><div id="cebody" aria-live="polite"></div></details></section>
@@ -63,6 +62,8 @@
     <div id="vcbody"></div>
   </details></section>
 </main>
-<script type="module" src="app.js"></script>
+<footer id="site-footer"></footer>
+<script type="module" src="/js/shell.mjs"></script>
+<script type="module" src="/app.js"></script>
 </body>
 </html>

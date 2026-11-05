@@ -82,3 +82,32 @@ def test_nonfinite_nested_summary_422(client, raw):
     body = '{"name":"t","params":{"floors":1},"summary":' + raw + '}'
     r = client.post("/designs", content=body, headers={"content-type": "application/json"})
     assert r.status_code == 422
+
+
+# ---- v2 pages and content negotiation (added in Phase 1; existing tests unchanged) ----
+BROWSER = {"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+
+
+@pytest.mark.parametrize("path", ["/", "/studio", "/learn", "/about"])
+def test_page_routes_serve_html(client, path):
+    r = client.get(path)
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    assert "ArchiTwin" in r.text and 'id="site-header"' in r.text
+
+
+@pytest.mark.parametrize("path,marker", [("/designs", 'data-page="designs"'), ("/materials", 'data-page="materials"')])
+def test_negotiated_paths_html_for_browser_json_otherwise(client, path, marker):
+    h = client.get(path, headers=BROWSER)
+    assert h.status_code == 200 and h.headers["content-type"].startswith("text/html") and marker in h.text
+    for hdrs in ({}, {"Accept": "*/*"}, {"Accept": "application/json"}, {"Accept": "application/json, text/html;q=0.5"}):
+        j = client.get(path, headers=hdrs)
+        assert j.headers["content-type"].startswith("application/json") and isinstance(j.json(), list)
+        assert j.headers["vary"] == "Accept"
+
+
+def test_assets_docs_and_api_unchanged(client):
+    assert client.get("/css/site.css").status_code == 200
+    assert client.get("/js/shell.mjs").status_code == 200
+    assert client.get("/docs").status_code == 200
+    assert client.get("/designs/9999", headers=BROWSER).status_code == 404
+    assert client.get("/health").json() == {"status": "ok"}

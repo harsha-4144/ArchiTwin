@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designs | ArchiTwin</title>
+<meta name="description" content="Starting designs, your saved designs, and a side-by-side comparison.">
+<link rel="stylesheet" href="/css/tokens.css">
+<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/pages.css">
+</head>
+<body data-page="designs">
+<header id="site-header"><noscript><a class="skip" href="#main">Skip to content</a><nav class="no-js-nav" aria-label="Main"><a href="/">Home</a> <a href="/studio">Studio</a> <a href="/designs">Designs</a> <a href="/materials">Materials</a> <a href="/learn">Learn</a> <a href="/about">About</a></nav></noscript></header>
+<main id="main">
+  <section class="page-head"><div class="container wide">
+    <h1>Designs</h1>
+    <p class="lead">Start from a ready-made building, open one you saved, or put two side by side to see what changed.</p>
+  </div></section>
+
+  <section class="container wide section tight" aria-labelledby="pre-h">
+    <h2 id="pre-h" class="h-badge"><span class="badge" aria-hidden="true">1</span>Starting designs</h2>
+    <div class="grid cols-4" id="presets"></div>
+  </section>
+
+  <section class="container wide section tight" aria-labelledby="sav-h">
+    <h2 id="sav-h" class="h-badge"><span class="badge" aria-hidden="true">2</span>Your saved designs</h2>
+    <div id="saved" aria-live="polite"><p class="muted" id="saved-state">Loading your saved designs...</p></div>
+    <noscript><p>Saved designs need JavaScript.</p></noscript>
+  </section>
+
+  <section class="container wide section tight" aria-labelledby="cmp-h">
+    <h2 id="cmp-h" class="h-badge"><span class="badge" aria-hidden="true">3</span>Compare two designs</h2>
+    <div class="pickers">
+      <div class="field"><label for="pickA">Design A</label><select id="pickA"></select></div>
+      <div class="field"><label for="pickB">Design B</label><select id="pickB"></select></div>
+    </div>
+    <div id="cmp" aria-live="polite"><p class="muted">Choose two designs to see them side by side.</p></div>
+  </section>
+</main>
+<footer id="site-footer"><noscript><div class="container"><p>Simplified model, no live-data link. Not a structural safety check. <a href="https://github.com/harsha-4144/ArchiTwin">Source on GitHub</a></p></div></noscript></footer>
+<script type="module" src="/js/shell.mjs"></script>
+<script type="module" src="/js/designs.mjs"></script>
+</body>
+</html>

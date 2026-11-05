@@ -190,5 +190,8 @@ export function createViewer(container, onPick) {
   });
   resize();
   return { setModel, select, resetView: () => { if (lastModel) { frame(lastModel); dirty = true; } },
-    fitModels: models => { frame(models[0], models); dirty = true; }, screenPosOf, ids: () => [...byId.keys()] };
+    fitModels: models => { frame(models[0], models); dirty = true; }, screenPosOf, ids: () => [...byId.keys()],
+    // Display helpers for the Home hero: turn the camera about the vertical axis, and know when the user drags.
+    orbit(angle) { const t = controls.target, p = camera.position.clone().sub(t); p.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle); camera.position.copy(t).add(p); camera.lookAt(t); dirty = true; },
+    controls, onUserStart(fn) { controls.addEventListener('start', fn); }, dispose() { renderer.setAnimationLoop(null); renderer.dispose(); } };
 }

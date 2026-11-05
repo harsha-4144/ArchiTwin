@@ -200,8 +200,8 @@ function showDetails() {
 
 const buildingBeamType = () => building.components.find(c => c.type === 'beam')?.beamType ?? 'simply';
 const beamTable = (head, rows, foot) => {
-  const t = el('table'); const wrap = el('div', { class: 'tscroll' }, t); t.append(el('thead', {}, el('tr', {}, ...head.map(h => el('th', { text: h })))));
-  const tb = el('tbody'); rows.forEach(r => tb.append(el('tr', {}, ...r.map(x => el('td', { text: x }))))); t.append(tb);
+  const t = el('table'); const wrap = el('div', { class: 'tscroll' }, t); t.append(el('thead', {}, el('tr', {}, ...head.map(h => el('th', { text: h, scope: 'col' })))));
+  const tb = el('tbody'); rows.forEach(r => tb.append(el('tr', {}, ...r.map(x => el('td', { text: x, ...(x === 'PASS' || x === 'FAIL' ? { class: x.toLowerCase() } : {}) }))))); t.append(tb);
   if (foot) t.append(el('tfoot', {}, el('tr', {}, ...foot.map(x => el('td', { text: x })))));
   return wrap;
 };
@@ -397,7 +397,7 @@ function loadDesign(d) {
     const p = validateParams(d.params);
     Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
   } catch (e) { say('Cannot load: ' + e.message); return; }
-  refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`);
+  refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`); setQuery('design', d.id);
 }
 async function removeDesign(d) {
   try { await api('/designs/' + d.id, { method: 'DELETE' }); say(`Deleted "${d.name}".`); await refreshSaved(); } catch (e) { say('Delete failed: ' + e.message); }
@@ -414,6 +414,8 @@ $('vsave').addEventListener('click', async () => {
 $('setorig').addEventListener('click', () => { setOriginal('current design when set', building.params); say('Original set to the current design.'); });
 $('vcA').addEventListener('change', renderVersionCompare); $('vcB').addEventListener('change', renderVersionCompare);
 
+// The chosen preset or saved design lives in the URL (?preset=id or ?design=id) so pages can link to it; replaceState keeps Back clean.
+function setQuery(k, v) { const u = new URL(location.href); u.search = ''; u.searchParams.set(k, v); history.replaceState(null, '', u); }
 const presetSel = $('preset');
 presetSel.append(el('option', { value: '', text: 'Starting design' }));
 for (const p of PRESETS) presetSel.append(el('option', { value: p.id, text: p.name }));
@@ -425,6 +427,7 @@ function loadPreset(id) {
   } catch (e) { $('err').textContent = 'Cannot load: ' + e.message; return; }
   refreshers.forEach(f => f()); selected = null; analysed = false; anType = null; checkedAll = false;
   $('presetblurb').textContent = pr.blurb; presetSel.value = id;
+  setQuery('preset', id);
   update();
   if (original) setOriginal(pr.name, pr.params);
 }
@@ -435,6 +438,11 @@ renderAbout(null);
 update();
 setOriginal('starting design', building.params);
 refreshSaved();
+{
+  const q = new URLSearchParams(location.search), norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (q.has('preset')) { const pr = PRESETS.find(p => p.id === norm(q.get('preset'))); if (pr) loadPreset(pr.id); else say('Unknown preset in the link; showing the starting design.'); }
+  else if (q.has('design')) api('/designs/' + encodeURIComponent(q.get('design'))).then(loadDesign).catch(e => say('Could not open that saved design: ' + e.message));
+}
 
 // ---------- narrow screens: secondary cards fold up (desktop: always open) ----------
 const narrow = window.matchMedia('(max-width: 900px)');

@@ -1,0 +1,34 @@
+/* ArchiTwin v2 design tokens (see docs/DESIGN.md). System fonts only. */
+:root{
+  --cream:#f6efe0; --paper:#fffaf0; --sand:#efe3c4; --line:#c9bb98; --line-soft:#e3d8bf;
+  --ink:#2d2a24; --muted:#5e5646; --teal:#1f6f6b; --teal-deep:#124f4c; --brass:#e0b25a;
+  --pass:#276b43; --warn:#8a5a00; --fail:#b3392b;
+  --pass-bg:#e1efe3; --warn-bg:#f6e6bf; --fail-bg:#f6dcd6; --focus:#124f4c;
+
+  --font-display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","URW Palladio L",P052,Georgia,serif;
+  --font-body:"Avenir Next",Seravek,"Segoe UI","Gill Sans Nova","Trebuchet MS",Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+
+  --t-hero:clamp(2.5rem,1.6rem + 3.8vw,4.5rem);
+  --t-h1:clamp(2rem,1.5rem + 2.2vw,3.25rem);
+  --t-h2:clamp(1.5rem,1.25rem + 1.1vw,2.25rem);
+  --t-h3:clamp(1.2rem,1.1rem + .45vw,1.5rem);
+  --t-lead:clamp(1.1rem,1.05rem + .3vw,1.3rem);
+  --t-body:1rem; --t-small:.875rem; --t-label:.8125rem;
+  --t-num:clamp(1.5rem,1.2rem + 1.2vw,2.25rem);
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px; --s-10:128px;
+  --r-sm:8px; --r-md:16px; --r-lg:24px; --r-pill:999px;
+  --sh-1:0 1px 2px rgba(60,45,15,.08);
+  --sh-2:0 8px 24px -8px rgba(60,45,15,.18);
+
+  --d-press:120ms; --d-lift:240ms; --d-reveal:600ms;
+  --ease-in:cubic-bezier(.2,.7,.2,1);
+  --gap:24px; --max:1200px; --max-wide:1440px;
+  --edge:max(20px,calc((100vw - var(--max))/2));
+  --edge-wide:max(20px,calc((100vw - var(--max-wide))/2));
+  --sec:48px;
+}
+@media (min-width:640px){:root{--sec:64px}}
+@media (min-width:900px){:root{--sec:96px}}
+@media (max-width:639px){:root{--gap:16px}}
