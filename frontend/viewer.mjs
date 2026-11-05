@@ -62,12 +62,14 @@ export function createViewer(container, onPick) {
   }
   new ResizeObserver(resize).observe(container);
 
-  function frame(b) {
-    const g = b.grid, cx = g.totalX / 2, cz = g.totalZ / 2;
-    const rise = Math.max(0, ...b.components.map(c => c.rise || 0));
-    const H = g.totalHeight + rise;
-    controls.target.set(cx, H / 2, cz);
-    const r = Math.hypot(g.totalX, g.totalZ, H) / 2;          // bounding-sphere radius
+  function frame(b, models = [b]) {   // fits the union bounding box of all models
+    let X = 0, Z = 0, H = 0;
+    for (const m of models) {
+      X = Math.max(X, m.grid.totalX); Z = Math.max(Z, m.grid.totalZ);
+      H = Math.max(H, m.grid.totalHeight + Math.max(0, ...m.components.map(c => c.rise || 0)));
+    }
+    controls.target.set(X / 2, H / 2, Z / 2);
+    const r = Math.hypot(X, Z, H) / 2;          // bounding-sphere radius
     resize();
     const vf = camera.fov * Math.PI / 360, hf = Math.atan(Math.tan(vf) * camera.aspect);
     const fit = r / Math.sin(Math.min(vf, hf)) * 1.05;
@@ -187,5 +189,6 @@ export function createViewer(container, onPick) {
     if (moved || dirty) { dirty = false; renderer.render(scene, camera); }
   });
   resize();
-  return { setModel, select, resetView: () => { if (lastModel) { frame(lastModel); dirty = true; } }, screenPosOf, ids: () => [...byId.keys()] };
+  return { setModel, select, resetView: () => { if (lastModel) { frame(lastModel); dirty = true; } },
+    fitModels: models => { frame(models[0], models); dirty = true; }, screenPosOf, ids: () => [...byId.keys()] };
 }

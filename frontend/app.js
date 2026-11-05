@@ -86,6 +86,7 @@ for (const seg of segs) for (const [k, t] of [['structure', 'Structure'], ['arch
   seg.append(b);
 }
 $('cmap').addEventListener('change', e => { cmap = e.target.checked; render(); });
+$('checkall').addEventListener('click', () => checkAllBeams());
 $('reset').addEventListener('click', () => viewer.resetView());
 
 // ---------- model ----------
@@ -204,6 +205,7 @@ const beamTable = (head, rows, foot) => {
   if (foot) t.append(el('tfoot', {}, el('tr', {}, ...foot.map(x => el('td', { text: x })))));
   return wrap;
 };
+const checkAllBeams = () => { checkedAll = true; render(); showAnalysis(); };
 const btn = (text, fn, cls = '', tip = '') => { const b = el('button', { type: 'button', text, class: cls, ...(tip ? { title: tip } : {}) }); b.addEventListener('click', fn); return b; };
 
 function showAnalysis() {
@@ -233,7 +235,7 @@ function showAnalysis() {
   }
   // (b) check all
   out.push(el('h3', { text: 'All beams' }));
-  out.push(btn('Check all beams', () => { checkedAll = true; render(); showAnalysis(); }, '', 'Test every beam and colour it green (pass) or red (fail) in the model'));
+  out.push(btn('Check all beams', checkAllBeams, '', 'Test every beam and colour it green (pass) or red (fail) in the model'));
   if (checkedAll) {
     out.push(btn('Clear colours', () => { checkedAll = false; render(); showAnalysis(); }, 'alt', 'Remove the green and red colours from the model'), el('span', { class: 'tip', text: ' Clear colours: removes the green and red beam colours.' }));
     const fails = check.beams.filter(b => !b.pass);
@@ -295,7 +297,7 @@ const currentSummary = () => summarize(building, check);
 function setOriginal(name, p) {
   try { original = { name, params: deep(p), ...analyse(p) }; } catch (e) { say('Cannot use that design as original: ' + e.message); return; }
   $('origname').textContent = '(' + name + ')';
-  viewerA.resetView(); renderCompare();
+  renderCompare();
 }
 
 const METRIC_FMT = {
@@ -342,6 +344,7 @@ function renderCompare() {
   const byMaterial = original.params.material !== params.material;
   viewerA.setModel(original.building, { layer, highlight: dc.original, byMaterial });
   viewerB.setModel(building, { layer, highlight: dc.modified, byMaterial });
+  viewerA.fitModels([original.building, building]); viewerB.fitModels([original.building, building]);
   const cl = $('cmplegend'); cl.hidden = !byMaterial; cl.replaceChildren();
   if (byMaterial) for (const k of [original.params.material, params.material]) cl.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(MATERIALS[k].name + (k === original.params.material ? ' (original)' : ' (modified)'))));
   const pd = diffParams(original.building.params, building.params);
