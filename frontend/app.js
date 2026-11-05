@@ -173,6 +173,7 @@ function sizeText(c) {
   const mm = v => fmt(v * 1000, 0);
   if (c.type === 'slab' || c.type === 'roof') return `${fmt(c.area)} m² × ${mm(c.thickness)} mm thick`;
   if (c.type === 'wall') return `${fmt(c.length)} m long × ${fmt(c.height)} m high × ${mm(c.thickness)} mm (net area ${fmt(c.area)} m²)`;
+  if (c.type === 'column') return `${mm(c.width)} × ${mm(c.length)} mm section × ${fmt(c.height)} m high`;
   return `${mm(c.width)} × ${mm(c.height)} mm section × ${fmt(c.length)} m`;
 }
 

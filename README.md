@@ -39,8 +39,8 @@ Use plain `node --test` from the repo root (Node 18+; it finds `frontend/tests/*
 - `GET /designs/{id}`, `DELETE /designs/{id}`
 
 ## 3-minute demo script
-1. Choose **Two-storey house (demo)**. Rotate it, switch layer to hide the walls and show the frame, click a column and a window.
-2. In the Analysis panel press **Check all beams**: some turn red. Click a red beam, read how far it bends, make it deeper (or switch to steel) until it turns green.
+1. Choose **Two-storey house (demo)**. Rotate it, switch layer to hide the walls and show the frame, click a column and a wall (a wall's detail lists its door and window sizes; windows are not separate clickable parts).
+2. In the Analysis panel press **Check all beams**: some turn red. Click a red beam, read how far it bends, make it deeper (set **Beam depth h** to 0.35 m, which turns all 24 beams green) or switch the material to steel.
 3. Open **Material Comparison**: weight, cost and pass count for timber, steel and concrete.
 4. Save the original design and the modified design, set one as original and view them side by side. Stop the server and run `./run.sh` again: both are still listed.
 5. Open http://localhost:8000/docs, run `GET /designs` to show the stored rows. Show the passing test output.
