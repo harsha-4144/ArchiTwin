@@ -61,3 +61,8 @@
 - Item 7 fresh-clone test found: column detail showed height in the wrong slot (fixed; display only, weights were right); README wording for window clicks and depth fix (fixed).
 - ArchiTwin rename (user request, overrides plan's LOCKED name): product name ArchiTwin; old name kept as subtitle.
 - v1.2 items 3-5: Check all beams in 3D toolbar; compare views fit union of both buildings; README clone URL and limits; fresh clone check passed (pytest 37, node 37, /health, /materials, page 0 console errors). Author email kept as-is by user decision (no history rewrite).
+
+## v2 redesign (branch v2-redesign)
+### Phase 0: design skill and direction — DONE
+- Installed `design-taste-frontend` (leonxlnx/taste-skill) via the requested npx command; it is the only skill in that repo (no separate redesign skill). Used as guidance only: no scripts run, nothing fetched, assets not copied; `.claude/skills/` and `skills-lock.json` are git-ignored (third-party, 40 MB). Dials: layout 7, motion 6, density 5. docs/DESIGN.md written (tokens, system-font stacks, motion rules, skill notes). The subagent only skimmed parts of the skill references; the main agent read SKILL.md in full.
+- Skill conflicts resolved in favour of the brief: scroll-reveal kept on Home/Materials/Learn (gated by prefers-reduced-motion); no photographs/shaders/third-party icons.
