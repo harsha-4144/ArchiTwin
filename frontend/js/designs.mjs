@@ -1,6 +1,6 @@
 // designs.mjs - starting designs, saved designs (API) and a two-way comparison. Display only: numbers come from calc.mjs.
 import { PRESETS, presetOf } from '../presets.mjs';
-import { diffSummaries } from '../calc.mjs';
+import { diffSummaries, MATERIALS } from '../calc.mjs';
 import { $, el, fmt, inr, analyse, fetchDesigns, ROOFS, MATNAMES } from './util.mjs';
 import { statusChip } from './icons.mjs';
 import { getThumb } from './thumbs.mjs';
@@ -125,3 +125,11 @@ restore();
 
 try { saved = await fetchDesigns(); renderSaved(); fillPicks(); restore(); }
 catch (e) { $('#saved').replaceChildren(el('p', { class: 'status fail', role: 'alert', text: 'Could not load saved designs: ' + e.message }), el('p', { class: 'muted', text: 'Starting designs still work. Check that ArchiTwin is running, then reload the page.' })); }
+
+// Header quick stats (display only, read from the data files).
+{
+  const fl = PRESETS.map(p => p.params.floors), lo = Math.min(...fl), hi = Math.max(...fl);
+  $('#ps-houses').textContent = PRESETS.length;
+  $('#ps-mats').textContent = Object.keys(MATERIALS).length;
+  $('#ps-floors').textContent = lo === hi ? String(lo) : `${lo}-${hi}`;
+}
