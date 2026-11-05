@@ -23,8 +23,8 @@ node --test
 ```
 
 ## Demo (3 minutes)
-1. Choose **Twin-Gable Family Home (demo)**. Rotate it, use the Structure layer, click a column and a wall.
-2. Press **Check all beams**: some turn red. Click one, then set **Beam depth h** to 0.45 m or switch to steel until all turn green.
+1. Choose **Twin-Gable Family Home (demo)**. Rotate it, switch to the **Structure** layer and click a column, then switch to **Architecture** and click a wall.
+2. Press **Check all beams** above the 3D view: some turn red. Click one, then drag the **Beam depth h** slider (left panel, Structure) to 0.45 m, or set **Material** to Steel, until all turn green.
 3. Open **Material Comparison**.
 4. Save the original and the modified design and view them side by side. Restart `./run.sh`: both are still there.
 5. Open http://localhost:8000/docs and run `GET /designs`.
