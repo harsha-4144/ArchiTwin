@@ -19,3 +19,6 @@
 ### Stage 0: Setup — gate PASS
 - python 3.12.3, node 22, .venv imports OK; run.sh/run.bat written; vendor copied; prototype JS parse-checked (no browser installed, so not opened visually).
 - Assumption: three 0.187.0 ships no `three.module.min.js`; vendored `three.module.js` + `three.core.js` + `OrbitControls.js` instead (plan name differs, same purpose).
+### Stage 1: Backend and materials — gate PASS
+- pytest 17 passed; /health, /docs (200), /materials (timber, steel, concrete) verified via ./run.sh; saved design survives restart.
+- Assumption: durability rating lives in the frontend (plan's materials table has no such column). Param validation covers floors 1-2, bays 1-3, span 2-8, floor height 2.5-4, material, beam type, roof type.
