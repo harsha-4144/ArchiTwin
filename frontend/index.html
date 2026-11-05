@@ -1,1 +1,43 @@
-<!doctype html><title>ADT</title><h1>ADT placeholder</h1>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architectural Digital Twin cum Simulator</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<header>
+  <h1>Architectural Digital Twin <span>cum Simulator</span></h1>
+  <p class="tag">Explore &middot; Modify &middot; Compare &middot; Learn</p>
+</header>
+<p class="note" id="note">Simplified teaching model: no live-data link. Material numbers are rounded assumptions, not a structural safety check.</p>
+<main>
+  <section class="card" id="params"><h2><b class="badge">1</b>Design Parameters</h2><div id="controls"></div></section>
+  <section class="card" id="viewcard">
+    <h2><b class="badge">2</b>Interactive Building Model</h2>
+    <div class="bar">
+      <div class="seg" id="layers" role="radiogroup" aria-label="Layer"></div>
+      <label class="chk"><input type="checkbox" id="cmap"> Deformation colour map</label>
+      <button id="reset" type="button">Reset view</button>
+    </div>
+    <div id="view"></div>
+    <div id="legend" hidden>
+      <span>Beam deflection as share of limit (L/250)</span>
+      <i class="grad"></i><span class="ticks"><em>0%</em><em>50%</em><em>100%+</em></span>
+    </div>
+    <div id="matlegend" hidden></div>
+    <p class="hint">Drag to orbit, scroll to zoom, click a part for details. Use the Structure layer to pick parts hidden behind walls.</p>
+    <p class="err" id="err" role="alert"></p>
+  </section>
+  <aside id="right">
+    <section class="card" id="results"><h2><b class="badge">3</b>Expected Results</h2><div id="resbody"></div></section>
+    <section class="card" id="details"><h2><b class="badge">4</b>Selected Component</h2><div id="detbody"><p class="muted">Click any part of the building.</p></div></section>
+  </aside>
+  <section class="card bottom" id="matcard"><h2><b class="badge">5</b>Material Comparison</h2><p class="muted">Coming in a later stage: concrete, timber and steel side by side.</p></section>
+  <section class="card bottom" id="aboutcard"><h2><b class="badge">6</b>About This Result</h2><p class="muted">Coming in a later stage: data source, assumptions, limitations and when to use professional analysis.</p></section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>

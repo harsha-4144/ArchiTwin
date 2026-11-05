@@ -1,0 +1,58 @@
+:root{--cream:#f6efe0;--card:#fffaf0;--teal:#1f6f6b;--ink:#2d2a24;--muted:#7a7160;--line:#e3d8bf;--bad:#b3392b;--good:#2e7d4f}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{padding:10px 20px 0;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+h1{margin:0;font-size:22px;color:var(--teal);letter-spacing:.3px}
+h1 span{font-weight:400}
+.tag{margin:0;color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+.note{margin:4px 20px 8px;padding:4px 10px;background:#efe3c4;border-radius:8px;font-size:13px}
+main{flex:1;display:grid;grid-template-columns:290px minmax(0,1fr) 310px;grid-template-rows:minmax(480px,calc(100vh - 250px)) auto;gap:12px;padding:0 20px 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 2px 6px rgba(80,60,20,.07);min-width:0}
+h2{margin:0 0 8px;font-size:16px;color:var(--teal);display:flex;align-items:center;gap:8px}
+.badge{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:13px;align-items:center;justify-content:center;flex:none;font-style:normal}
+#params,#right{overflow-y:auto}
+#right{display:flex;flex-direction:column;gap:12px}
+#viewcard{display:flex;flex-direction:column;min-height:0}
+#view{flex:1;min-height:300px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+#view canvas{display:block}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.seg{display:inline-flex;border:1px solid var(--teal);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--teal);padding:4px 12px;font:inherit;cursor:pointer}
+.seg button[aria-checked=true]{background:var(--teal);color:#fff}
+button{font:inherit}
+#reset{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer}
+.chk{display:flex;gap:4px;align-items:center;font-size:14px}
+fieldset{border:0;border-top:1px solid var(--line);margin:6px 0 0;padding:6px 0 2px}
+legend{color:var(--teal);font-weight:600;font-size:13px;padding:0 4px 0 0}
+.row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;margin:4px 0;font-size:14px}
+.row input[type=range]{grid-column:1/-1;width:100%;accent-color:var(--teal)}
+.row output{font-weight:600}
+select,input[type=number]{font:inherit;border:1px solid var(--line);border-radius:8px;padding:2px 6px;background:#fff;max-width:100%}
+input[type=number]{width:60px}
+.sides{display:grid;grid-template-columns:auto 1fr 1fr;gap:4px 8px;align-items:center;font-size:13px}
+.sides span.h{color:var(--muted);font-size:12px}
+.tg{display:flex;gap:10px;flex-wrap:wrap;font-size:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:14px;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600;text-align:right;overflow-wrap:anywhere}
+.pass{color:var(--good)} .fail{color:var(--bad)}
+.muted{color:var(--muted);font-size:14px;margin:0}
+.hint{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.err{margin:4px 0 0;font-size:13px;color:var(--bad);min-height:1em}
+#legend{margin-top:8px;font-size:12px}
+#legend .grad{display:block;height:12px;border-radius:6px;margin:4px 0 2px;background:linear-gradient(90deg,hsl(223,80%,50%),hsl(112,80%,50%),hsl(0,80%,50%))}
+#legend .ticks{display:flex;justify-content:space-between}
+#legend em{font-style:normal;color:var(--muted)}
+#matlegend{margin-top:8px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap}
+#matlegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid #0003}
+.bottom{grid-row:2}
+#matcard{grid-column:1/3}
+#aboutcard{grid-column:3}
+@media (max-width:900px){
+  main{grid-template-columns:1fr;grid-template-rows:none}
+  #viewcard{order:1;grid-row:auto} #params{order:2;overflow:visible} #right{order:3;overflow:visible}
+  #matcard{order:4;grid-column:auto;grid-row:auto} #aboutcard{order:5;grid-column:auto;grid-row:auto}
+  #view{height:55vh;flex:none}
+  header,.note{margin-left:12px;margin-right:12px;padding-left:0} main{padding:0 12px 12px}
+}
+[hidden]{display:none!important}

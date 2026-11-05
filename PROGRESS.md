@@ -29,3 +29,6 @@
 ### Stage 3: Building generator — gate PASS
 - Counts match formulas for 5+ parameter sets; total weight = sum of parts. node 21/21 pass, pytest 17 pass.
 - Assumptions: validateParams throws (no clamping); doors/windows stored as `openings` on walls (not separate components); doors on floor 0 only; one partition wall per floor; one roof component. Hidden floors (floor_visible) are currently omitted from components; stage 4 should make visibility a view-only concern if it affects totals unexpectedly.
+### Stage 4: Viewer and look — gate PASS
+- Real Chromium (Playwright, kept outside the project) at 1366x768 and 390px: no console errors; floors/bays/span/roof/material changes rebuild the model; clicking a 5 m concrete 250x350 beam showed volume 0.4375 m3, weight 10.30 kN, cost ₹8,750, deflection 4.40 mm (matches hand calc). Node 21/21, pytest 17.
+- Known gaps: in Architecture layer walls/roof catch clicks (use Structure layer for hidden parts); on mobile 3D view comes first so badge order reads 2,1,3.
