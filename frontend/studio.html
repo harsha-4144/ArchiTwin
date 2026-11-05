@@ -24,7 +24,8 @@
       <button id="checkall" type="button" class="btn btn-secondary" title="Test every beam and colour it green (pass) or red (fail) in the model">Check all beams</button>
     </div>
     <div id="view" aria-describedby="tip"><p class="state" id="viewstate" role="status">Loading the 3D view&hellip;</p><noscript><p class="state">The 3D model needs JavaScript and WebGL. Without JavaScript this area stays empty.</p></noscript></div>
-    <div class="vfoot"><label for="partpick">Pick a part</label><select id="partpick" aria-label="Pick a part to select it"></select>
+    <a class="jump" href="#params" id="jump">Jump to parameters</a>
+    <div class="vfoot"><span class="labwrap" id="pickhelp"><label for="partpick">Pick a part</label></span><select id="partpick" aria-label="Pick a part to select it"></select>
       <button id="reset" type="button" class="btn btn-secondary">Reset view</button>
       <span class="bendnote" id="bendnote">Bending shown &times;30: drawing only, the numbers are exact.</span></div>
     <div id="legend" hidden>
@@ -32,14 +33,16 @@
       <i class="grad"></i><span class="ticks"><em>0%</em><em>50%</em><em>100%+</em></span>
     </div>
     <div id="matlegend" hidden></div>
+    <p class="hint archnote" id="archnote" hidden>Decorative parts do not carry load and are not counted in totals or beam checks.</p>
     <p class="hint">Drag to orbit, scroll to zoom, hover or click a part for details. Keyboard: choose a part in the list above. Use the Structure layer for parts hidden behind walls.</p>
     <p class="err" id="err" role="alert"></p>
   </section>
   <section class="card" id="cmpcard"><details class="fold" open><summary><h2><b class="badge">3</b>Original vs Modified</h2></summary>
     <div class="bar"><div class="seg layerseg" role="radiogroup" aria-label="Layer for comparison"></div>
-      <button id="setorig" type="button" class="btn btn-secondary">Set current design as original</button>
+      <button id="setorig" type="button" class="btn btn-secondary">Use the current design as the Original (before)</button>
       <div class="seg" id="cmpmode" role="radiogroup" aria-label="Comparison view"><button type="button" role="radio" data-mode="slider" aria-checked="true">Slider</button><button type="button" role="radio" data-mode="side" aria-checked="false">Side by side</button></div>
       <span class="hl-key"><i></i>Orange glow = size or count changed; colour = material</span></div>
+    <p class="hint">Original is the design you compare against (before); Modified is the design you are editing now (after).</p>
     <div id="cmplegend" hidden></div>
     <div class="pair slider" id="pair" style="--p:50%">
       <figure><figcaption><b>Original</b> (before) <span id="origname"></span></figcaption><div class="view2" id="viewA"></div></figure>

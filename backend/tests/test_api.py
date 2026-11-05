@@ -111,3 +111,9 @@ def test_assets_docs_and_api_unchanged(client):
     assert client.get("/docs").status_code == 200
     assert client.get("/designs/9999", headers=BROWSER).status_code == 404
     assert client.get("/health").json() == {"status": "ok"}
+
+
+@pytest.mark.parametrize("bad", ["99999999999999999999", "-99999999999999999999", "9223372036854775808"])
+def test_huge_id_is_404_not_500(client, bad):
+    assert client.get(f"/designs/{bad}").status_code == 404
+    assert client.delete(f"/designs/{bad}").status_code == 404

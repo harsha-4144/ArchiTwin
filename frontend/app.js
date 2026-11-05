@@ -58,11 +58,23 @@ const el = (tag, attrs = {}, ...kids) => {
 
 // ---------- controls ----------
 // Small '?' button that shows/hides a plain-words caption under a control row.
-function withHelp(row, text) {
-  const cap = el('p', { class: 'hint helpcap', text, hidden: '' });
-  const b = el('button', { type: 'button', class: 'help', 'aria-label': 'What does this mean?', 'aria-expanded': 'false', title: text, text: '?' });
-  b.addEventListener('click', () => { cap.hidden = !cap.hidden; b.setAttribute('aria-expanded', String(!cap.hidden)); });
-  row.querySelector('label').append(' ', b);
+let helpN = 0;
+const helpPairs = [];
+function helpButton(name, text) {
+  const id = 'help-' + (++helpN);
+  const cap = el('p', { class: 'hint helpcap', id, role: 'note', text, hidden: '' });
+  const b = el('button', { type: 'button', class: 'help', 'aria-label': 'Help: ' + name, 'aria-expanded': 'false', 'aria-controls': id, 'aria-describedby': id, text: '?' });
+  const set = open => { cap.hidden = !open; b.setAttribute('aria-expanded', String(open)); };
+  b.addEventListener('click', () => set(cap.hidden));
+  b.addEventListener('keydown', e => { if (e.key === 'Escape' && !cap.hidden) { set(false); e.stopPropagation(); } });
+  helpPairs.push(set);
+  return { b, cap };
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') helpPairs.forEach(s => s(false)); });
+function withHelp(row, text, name) {
+  const label = row.querySelector('label');
+  const { b, cap } = helpButton(name || label.textContent, text);
+  const wrap = el('span', { class: 'labwrap' }); label.replaceWith(wrap); wrap.append(label, b);
   return el('div', {}, row, cap);
 }
 const refreshers = [];
@@ -99,7 +111,7 @@ function sideTable(title, key, max) {
   return t;
 }
 
-group('Building', slider('Floors', 'floors', 1, 2, 1), withHelp(slider('Bays in x', 'bays_x', 1, 3, 1), HELP.bay), withHelp(slider('Bays in z', 'bays_z', 1, 3, 1), HELP.bay),
+group('Building', slider('Floors', 'floors', 1, 2, 1), withHelp(slider('Bays in x', 'bays_x', 1, 3, 1), HELP.bay + ' ' + HELP.grid), withHelp(slider('Bays in z', 'bays_z', 1, 3, 1), HELP.bay + ' ' + HELP.grid),
   slider('Bay span x', 'span_x', 2, 8, 0.5, ' m'), slider('Bay span z', 'span_z', 2, 8, 0.5, ' m'), slider('Floor height', 'floor_height', 2.5, 4, 0.1, ' m'));
 group('Roof', select('Roof type', 'roof_type', [['flat', 'Flat'], ['shed', 'Shed'], ['gable', 'Gable']]), slider('Roof pitch', 'roof_pitch', 0, 45, 1, '°'));
 const f1 = checkbox('Floor 1', () => params.floor_visible[0], v => params.floor_visible[0] = v);
@@ -110,7 +122,7 @@ group('Doors per side', sideTable('Doors', 'doors', 4));
 group('Windows per side', sideTable('Windows', 'windows', 8),
   slider('Window width', 'window_w', 0.3, 4, 0.1, ' m'), slider('Window height', 'window_h', 0.3, 3.7, 0.1, ' m'));
 group('Structure', withHelp(select('Material', 'material', Object.entries(MATERIALS).map(([k, m]) => [k, m.name])), HELP.stiffer),
-  withHelp(select('Beam type', 'beam_type', [['simply_supported', 'Simply supported'], ['cantilever', 'Cantilever']]), HELP.cantilever + ' Simply supported = resting on a support at each end.'),
+  withHelp(select('Beam type', 'beam_type', [['simply_supported', 'Simply supported'], ['cantilever', 'Cantilever']]), HELP.simply + ' ' + HELP.cantilever),
   slider('Beam width b', 'beam_b', 0.1, 0.6, 0.05, ' m'), slider('Beam depth h', 'beam_h', 0.15, 0.9, 0.05, ' m'));
 group('Loads', slider('Applied load', 'load', 0, 50, 1, ' kN/m'), el('p', { class: 'hint', text: 'kN/m = force per metre of beam length. A typical floor is about 5–15 kN/m.' }));
 
@@ -150,7 +162,7 @@ function tipSize(c) {
 function showTip(c, x, y) {
   if (!c || !building) { tip.hidden = true; return; }
   const r = componentWeightCost(c, c.type === 'feature' ? c.material : params.material);
-  tip.replaceChildren(el('b', { text: componentName(c) }), el('span', { text: `${MATERIALS[r.material].name} · ${tipSize(c)}` }));
+  tip.replaceChildren(el('b', { text: componentName(c) }), el('span', { text: `${MATERIALS[r.material].name} · ${tipSize(c)}` }), ...(c.type === 'feature' ? [el('em', { text: DECORATIVE_NOTE })] : []));
   tip.hidden = false;
   const w = tip.offsetWidth, h = tip.offsetHeight;
   const px = Math.max(8, Math.min(innerWidth - w - 8, x + 14)), py = Math.max(8, Math.min(innerHeight - h - 8, y + 16));
@@ -170,6 +182,7 @@ function pickPart(c, fromList = false) {
 }
 const viewer = makeViewer($('view'), c => pickPart(c), (c, x, y) => { if (c) showTip(c, x, y); else tip.hidden = true; });
 const picker = $('partpick');
+{ const { b, cap } = helpButton('part names', HELP.grid); $('pickhelp').append(b); $('pickhelp').after(cap); }
 let pickerKey = '';
 function fillPicker() {
   const key = allParts().map(c => c.id).join('|');
@@ -217,6 +230,7 @@ function render() {
   viewer.setModel(building, { layer, ratios, passFail, deflections, bendScale: BEND_SCALE, features: arch, palette: curPreset ? curPreset.palette : null });
   if (!render.done) { render.done = true; const st = $('viewstate'); if (st) st.remove(); }
   $('legend').hidden = !cmap;
+  $('archnote').hidden = !(arch.length && layer !== 'structure');
   const ml = $('matlegend'); ml.hidden = layer !== 'materials'; ml.replaceChildren();
   for (const [k, m] of Object.entries(MATERIALS)) ml.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(m.name)));
   if (selected) viewer.select(selected.id);
@@ -234,8 +248,9 @@ function kv(rows) {
 }
 
 // ---------- About this result (card 6) ----------
+const ABOUT_LABEL = { results: 'What do these results assume?', analysis: 'What does this analysis assume?', materials: 'What do these material numbers assume?', versions: 'What does this comparison assume?' };
 function aboutLink(ctx) {
-  const b = btn('About this result', () => openAbout(ctx), 'alt about-link');
+  const b = btn(ABOUT_LABEL[ctx] || 'What does this assume?', () => openAbout(ctx), 'alt about-link');
   b.setAttribute('aria-controls', 'aboutcard');
   return b;
 }
@@ -305,7 +320,7 @@ function showDetails() {
   if (c.type === 'beam') {
     const b = check.beams.find(x => x.id === c.id);
     rows.push(['Deflection', `${fmt(b.deflectionMm)} mm`], ['Allowed (span ÷ 250)', `${fmt(b.limitMm)} mm`], ['Share of limit', `${fmt(b.ratio * 100, 0)}%`], ['Result', b.pass ? 'PASS' : 'FAIL', b.pass ? 'pass' : 'fail']);
-    box.replaceChildren(kv(rows), el('p', { class: b.pass ? 'msg pass' : 'msg fail', text: beamMessage(b, { material: params.material, type: buildingBeamType() }) }), aboutLink('analysis'));
+    box.replaceChildren(kv(rows), el('p', { class: b.pass ? 'msg pass' : 'msg fail', text: beamMessage(b, { material: params.material, type: buildingBeamType() }) }));
     return;
   }
   if (c.type === 'wall') {
@@ -327,6 +342,7 @@ const btn = (text, fn, cls = '', tip = '') => { const b = el('button', { type: '
 
 function showAnalysis() {
   const box = $('anbody'), out = [];
+  out.push(el('p', { class: 'assume', text: `Using: ${MATERIALS[params.material].name} beams, ${fmt(params.beam_b * 1000, 0)} × ${fmt(params.beam_h * 1000, 0)} mm, ${params.load} kN/m load, ${buildingBeamType() === 'cantilever' ? 'cantilever' : 'simply supported'}, limit span ÷ 250.` }));
   // (a) analyse selected beam
   out.push(el('h3', { text: 'Selected beam' }));
   if (!selected || selected.type !== 'beam') out.push(el('p', { class: 'muted', text: 'Click a beam in the model (use the Structure layer), then press Analyse beam.' }));
@@ -337,7 +353,7 @@ function showAnalysis() {
     sel.value = type;
     sel.addEventListener('change', () => { anType = sel.value; showAnalysis(); });
     out.push(el('p', { class: 'muted', text: componentNameWithId(selected) }), el('div', { class: 'row' }, el('label', { text: 'Support type' }), sel));
-    out.push(btn('Analyse beam', () => { analysed = true; showAnalysis(); }, '', 'Work out the sag of this one beam and compare it in all three materials'), el('p', { class: 'tip', text: 'Analyse beam: works out the sag of the selected beam only.' }));
+    out.push(btn('Analyse beam', () => { analysed = true; showAnalysis(); }, '', 'Work out the sag of this one beam and compare it in all three materials'), el('p', { class: 'tip', text: 'Works out the sag of the selected beam only.' }));
     if (analysed) {
       const r = beamDeflection({ material: params.material, span: selected.length, b: selected.width, h: selected.height, load: params.load, type });
       out.push(kv([
@@ -352,9 +368,10 @@ function showAnalysis() {
   }
   // (b) check all
   out.push(el('h3', { text: 'All beams' }));
-  out.push(btn('Check all beams', checkAllBeams, '', 'Test every beam and colour it green (pass) or red (fail) in the model'));
+  out.push(el('div', { class: 'btnrow' }, btn('Check all beams', checkAllBeams, '', 'Test every beam and colour it green (pass) or red (fail) in the model'),
+    ...(checkedAll ? [btn('Clear colours', () => { checkedAll = false; render(); showAnalysis(); }, 'alt', 'Remove the green and red colours from the model')] : [])),
+    el('p', { class: 'tip', text: 'Check all beams tests every beam and colours it green (pass) or red (fail) in the model.' + (checkedAll ? ' Clear colours removes those colours.' : '') }));
   if (checkedAll) {
-    out.push(btn('Clear colours', () => { checkedAll = false; render(); showAnalysis(); }, 'alt', 'Remove the green and red colours from the model'), el('span', { class: 'tip', text: ' Clear colours: removes the green and red beam colours.' }));
     const fails = check.beams.filter(b => !b.pass);
     const lp = el('p', { class: 'legpf' }, el('i', { style: 'background:#2e9e5b' }), document.createTextNode('pass'), el('i', { style: 'background:#d0382b' }), document.createTextNode('fail'));
     out.push(el('p', { class: fails.length ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }), lp, kv([['Beams passing', `${check.passCount} of ${check.beams.length} pass`, 'pass'], ['Beams failing', `${check.failCount} fail`, fails.length ? 'fail' : 'pass']]));
@@ -362,7 +379,7 @@ function showAnalysis() {
       const ul = el('ul', { class: 'failist' });
       fails.forEach(b => ul.append(el('li', { class: 'fail', title: b.id, text: `FAIL ${componentName(b.id)}: ${fmt(b.deflectionMm)} mm > ${fmt(b.limitMm)} mm` })));
       out.push(ul);
-    } else out.push(el('p', { class: 'pass flag', text: 'All beams PASS.' }), el('p', { class: 'hint', text: 'This only checks beam bending, under the stated assumptions: see About this result.' }));
+    } else out.push(el('p', { class: 'pass flag', text: 'All beams PASS.' }), el('p', { class: 'hint', text: 'This only checks beam bending, under the stated assumptions: see the About card.' }));
   }
   // (c) totals
   const t = totalsByType(building.components, params.material);
@@ -517,7 +534,7 @@ function renderCompare() {
   $('cebody').replaceChildren(el('div', { class: 'cols2' },
     el('div', {}, el('h3', { text: `Cause: ${pd.length} parameter${pd.length === 1 ? '' : 's'} changed (old → new)` }), paramList(pd)),
     el('div', {}, el('h3', { text: 'Effect: what moved' }), effectTable(rows, 'Original', 'Modified'))),
-    el('p', { class: 'hint', text: 'Daylight indicator = window area / floor area. It is simple arithmetic, not a daylight simulation. Compared against the original shown in section 3.' }), aboutLink('cause'));
+    el('p', { class: 'hint', text: 'Daylight indicator = window area / floor area. It is simple arithmetic, not a daylight simulation. Compared against the original shown in section 3.' }));
   renderVersionCompare();
 }
 
@@ -633,7 +650,7 @@ setOriginal('starting design', building.params);
 refreshSaved();
 {
   const q = new URLSearchParams(location.search);
-  if (q.has('preset')) { const pr = resolvePreset(q.get('preset')); if (pr) loadPreset(pr.id); else say('Unknown preset in the link; showing the starting design.'); }
+  if (q.has('preset')) { const pr = resolvePreset(q.get('preset')); if (pr) loadPreset(pr.id); else { say('Unknown preset in the link; showing the starting design.'); const u = new URL(location.href); u.searchParams.delete('preset'); history.replaceState(null, '', u); } }
   else if (q.has('design')) api('/designs/' + encodeURIComponent(q.get('design'))).then(loadDesign).catch(e => say('Could not open that saved design: ' + e.message));
 }
 
@@ -647,3 +664,9 @@ function applyFolds() {
 }
 document.querySelectorAll('.card > details.fold > summary').forEach(s => s.addEventListener('click', e => { if (!narrow.matches) e.preventDefault(); }));
 narrow.addEventListener('change', applyFolds); applyFolds();
+$('jump').addEventListener('click', e => {
+  e.preventDefault();
+  const d = document.querySelector('#params details'); if (d) d.open = true;
+  $('params').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+  const s = document.querySelector('#params summary'); if (s) s.focus({ preventScroll: true });
+});

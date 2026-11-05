@@ -200,3 +200,18 @@ details.fold>summary h2{margin-bottom:var(--s-3)}
 #split:focus-visible{outline:none}
 #split:focus-visible .grip{outline:3px solid var(--focus);outline-offset:3px}
 .msg.decorative{background:var(--sand);border-left:4px solid var(--brass,#b8893a)}
+
+/* review fixes: help popovers, jump link, button rows, assumptions line */
+.labwrap{display:inline-flex;align-items:center;gap:var(--s-2);min-width:0}
+.vfoot .helpcap{flex-basis:100%;margin:0}
+@media (max-width:639px){button.help{width:44px;height:44px}}
+.helpcap{max-width:none}
+.jump{display:none;margin:var(--s-3) 0 0;min-height:44px;align-items:center;font-weight:600}
+@media (max-width:899px){.jump{display:inline-flex}}
+#params{scroll-margin-top:72px}
+.btnrow{display:flex;flex-wrap:wrap;gap:var(--s-2);margin:0 0 var(--s-1)}
+.btnrow button{margin:0!important}
+.assume{margin:0 0 var(--s-3);padding:var(--s-2) var(--s-3);background:var(--sand);border-radius:var(--r-sm);font-size:var(--t-small);max-width:none}
+#tip em{font-style:normal;color:var(--ink)}
+.archnote{border-left:4px solid var(--brass,#b8893a);padding-left:var(--s-3)}
+#cmpcard .bar .btn{white-space:normal;text-align:center;line-height:1.2;padding-block:var(--s-2)}

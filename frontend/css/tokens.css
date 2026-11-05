@@ -24,9 +24,10 @@
 
   --d-press:120ms; --d-lift:240ms; --d-reveal:600ms;
   --ease-in:cubic-bezier(.2,.7,.2,1);
-  --gap:24px; --max:1200px; --max-wide:1440px;
-  --edge:max(20px,calc((100vw - var(--max))/2));
-  --edge-wide:max(20px,calc((100vw - var(--max-wide))/2));
+  --gap:24px; --max:1280px; --max-wide:1440px;
+  --gutter:clamp(20px,4vw,56px);   /* ONE side gutter for every page and the header; max widths only add centring */
+  --edge:max(var(--gutter),calc((100vw - var(--max))/2));
+  --edge-wide:max(var(--gutter),calc((100vw - var(--max-wide))/2));
   --sec:48px;
 }
 @media (min-width:640px){:root{--sec:64px}}

@@ -2,10 +2,12 @@
 /* Home */
 .hero{padding-block:var(--s-7) var(--s-6)}
 @media (min-width:900px){.hero{padding-block:var(--s-8) var(--s-7)}}
-.hero-title{font-size:var(--t-hero);margin-bottom:var(--s-5)}
+.hero-title{font-size:clamp(2.1rem,1.5rem + 2.2vw,3.25rem);margin-bottom:var(--s-4)}
 .hero-grid{align-items:center}
+@media (min-width:900px){.hero-grid{grid-template-columns:5fr 7fr}}
 .hero-copy .btn{margin-top:var(--s-2)}
-.hero-stage{height:clamp(300px,52vw,540px);position:relative}
+.hero-stage{height:clamp(300px,46vw,520px);position:relative}
+#hero-cap{max-width:none;margin:var(--s-3) 0 0}
 .hero-stage canvas{display:block}
 .hero-stage .pad{padding:var(--s-5)}
 .ficon{display:inline-flex;width:44px;height:44px;margin-bottom:var(--s-3);color:var(--teal)}
@@ -75,7 +77,8 @@
 .filters fieldset{border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:var(--s-2) var(--s-4) var(--s-3);margin:0;min-width:0}
 .filters legend{font-weight:600;color:var(--teal-deep);padding-inline:var(--s-2)}
 .filters .opts{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4)}
-.filters label{display:inline-flex;align-items:center;gap:var(--s-2);min-height:32px;cursor:pointer}
+.filters label{display:inline-flex;align-items:center;gap:var(--s-2);min-height:32px;cursor:pointer;font-size:.875rem;font-weight:400}
+@media (max-width:639px){.filters label{min-height:44px}.filters .btn{width:100%}}
 .filters input{width:18px;height:18px;accent-color:var(--teal)}
 .filters .btn{align-self:center}
 .gallery{display:grid;gap:var(--s-5);grid-template-columns:minmax(0,1fr)}
@@ -83,11 +86,18 @@
 @media (min-width:1100px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .dcard{display:flex;flex-direction:column}
 .dcard .thumb{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:var(--r-sm);background:var(--sand);margin:0 0 var(--s-3);border:1px solid var(--line-soft)}
-.dcard h3{margin-bottom:var(--s-1)}
-.chips{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-2);margin:var(--s-2) 0;padding:0;max-width:none}
+.dcard h3{margin-bottom:var(--s-1);min-height:2.2em;display:flex;align-items:flex-end}
+.dcard>.muted{flex:1 0 auto}
+.chips{list-style:none;display:flex;flex-wrap:wrap;align-content:flex-start;gap:var(--s-2);margin:var(--s-2) 0;padding:0;max-width:none;min-height:calc(2*(1.55*var(--t-small) + 4px) + var(--s-2))}
 .chips li{margin:0;background:var(--sand);border-radius:999px;padding:2px var(--s-3);font-size:var(--t-small)}
 .dcard .res{margin:var(--s-2) 0;font-weight:600}
 .dcard .btn{align-self:flex-start;margin-top:auto}
 .dcard .pushdown{margin-top:auto;padding-top:var(--s-2)}
 .differs-row td:last-child{font-weight:600;color:var(--teal-deep)}
 .dcard[hidden],#f-empty[hidden]{display:none}
+
+/* Home rhythm: tighter stacked sections (no double padding), content always visible without JS */
+body[data-page=home] .section{padding-block:var(--s-7)}
+@media (min-width:900px){body[data-page=home] .section{padding-block:var(--s-8)}body[data-page=home] .hero{padding-block:var(--s-7) var(--s-5)}}
+body[data-page=home] main>.section:last-child{padding-bottom:var(--s-5)}
+body[data-page=home] .steps+p{margin-top:0}

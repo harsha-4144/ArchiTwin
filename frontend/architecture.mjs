@@ -6,7 +6,7 @@
 import { validateParams } from './building.mjs';
 import { componentWeightCost } from './calc.mjs';
 
-export const DECORATIVE_NOTE = 'Decorative: not in the structural totals or beam checks.';
+export const DECORATIVE_NOTE = 'Decorative parts do not carry load and are not counted in totals or beam checks.';
 export const FEATURE_NAMES = ['veranda', 'chimney', 'parapet', 'terrace', 'deck', 'cladding', 'shutters', 'porch', 'canopy', 'portal', 'steps', 'pergola'];
 
 export function generateArchitecture(params, building, presetFeatures = []) {

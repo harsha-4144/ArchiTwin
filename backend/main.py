@@ -185,8 +185,18 @@ def create_design(d: DesignIn):
     return _design(r)
 
 
+INT64 = (-2**63, 2**63 - 1)
+
+
+def _unknown(design_id: int) -> bool:
+    """SQLite INTEGER is int64; anything outside cannot exist (and would raise OverflowError)."""
+    return not INT64[0] <= design_id <= INT64[1]
+
+
 @app.get("/designs/{design_id}")
 def get_design(design_id: int):
+    if _unknown(design_id):
+        raise HTTPException(404, "design not found")
     con = connect()
     r = con.execute("SELECT * FROM designs WHERE id=?", (design_id,)).fetchone()
     con.close()
@@ -197,6 +207,8 @@ def get_design(design_id: int):
 
 @app.delete("/designs/{design_id}", status_code=204)
 def delete_design(design_id: int):
+    if _unknown(design_id):
+        raise HTTPException(404, "design not found")
     con = connect()
     with con:
         n = con.execute("DELETE FROM designs WHERE id=?", (design_id,)).rowcount

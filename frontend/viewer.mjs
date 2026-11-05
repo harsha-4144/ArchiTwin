@@ -30,7 +30,22 @@ export function ratioColour(ratio) {
 }
 
 // vopts.thumb: still-image mode for thumbnails (no animation loop, no fades, buffer kept so toDataURL works).
+// Probe WebGL on a throwaway canvas BEFORE constructing a renderer, so a browser without WebGL
+// falls back quietly (three.js would otherwise log errors). Result is cached.
+let glProbe = null;
+export function webglAvailable() {
+  if (glProbe !== null) return glProbe;
+  try {
+    const c = document.createElement('canvas');
+    const gl = c.getContext('webgl2') || c.getContext('webgl');
+    glProbe = !!gl;
+    if (gl) { const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }
+  } catch { glProbe = false; }
+  return glProbe;
+}
+
 export function createViewer(container, onPick, onHover = null, vopts = {}) {
+  if (!webglAvailable()) throw new Error('WebGL is not available');
   const thumb = !!vopts.thumb;
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: thumb });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
