@@ -110,7 +110,7 @@ export function createViewer(container, onPick) {
 
   function setModel(b, opts = {}) {
     lastModel = b; lastOpts = opts;
-    const { layer = 'architecture', ratios = null, passFail = null, highlight = null } = opts;
+    const { layer = 'architecture', ratios = null, passFail = null, highlight = null, byMaterial = false } = opts;
     dirty = true;
     scene.remove(group);
     group.traverse(o => { if (o.geometry && o.geometry !== unit && o.geometry !== edgeGeo) o.geometry.dispose(); });
@@ -120,6 +120,7 @@ export function createViewer(container, onPick) {
       if (layer === 'structure' && !isStruct) continue;
       let hex = layer === 'materials' ? MAT_COLOURS[c.type === 'slab' ? 'concrete' : c.material] : ARCH_COLOURS[c.type];
       if (layer === 'structure') hex = c.type === 'beam' ? 0x6f8f8c : 0xa79f90;
+      if (byMaterial) hex = MAT_COLOURS[c.type === 'slab' ? 'concrete' : c.material];
       let mat = getMat(hex, c.type === 'wall' ? 0.5 : (c.type === 'slab' && layer === 'structure') ? 0.4 : 1);
       if (c.type === 'beam' && ratios && ratios[c.id] !== undefined)
         mat = getMat(ratioColour(ratios[c.id]).getHex());

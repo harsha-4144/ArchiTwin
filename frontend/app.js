@@ -3,7 +3,8 @@ import { generateBuilding, validateParams, DEFAULT_PARAMS, SIDES } from './build
 import { MATERIALS, summarize, diffSummaries, diffParams, diffComponents, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
 import { PRESETS } from './presets.mjs';
-import { beamMessage, buildingMessage, materialMessage, DEFLECTION_EXPLAINER, ABOUT, ABOUT_CONTEXT } from './messages.mjs';
+import { beamMessage, buildingMessage, materialMessage, DEFLECTION_EXPLAINER, ABOUT, ABOUT_CONTEXT, HELP, SELECT_HINT } from './messages.mjs';
+import { componentName, componentNameWithId, openingLines } from './names.mjs';
 
 const $ = id => document.getElementById(id);
 const params = JSON.parse(JSON.stringify(DEFAULT_PARAMS));
@@ -20,6 +21,14 @@ const el = (tag, attrs = {}, ...kids) => {
 };
 
 // ---------- controls ----------
+// Small '?' button that shows/hides a plain-words caption under a control row.
+function withHelp(row, text) {
+  const cap = el('p', { class: 'hint helpcap', text, hidden: '' });
+  const b = el('button', { type: 'button', class: 'help', 'aria-label': 'What does this mean?', 'aria-expanded': 'false', title: text, text: '?' });
+  b.addEventListener('click', () => { cap.hidden = !cap.hidden; b.setAttribute('aria-expanded', String(!cap.hidden)); });
+  row.querySelector('label').append(' ', b);
+  return el('div', {}, row, cap);
+}
 const refreshers = [];
 function group(title, ...kids) { const f = el('fieldset', {}, el('legend', { text: title })); kids.forEach(k => f.append(k)); $('controls').append(f); }
 function slider(label, key, min, max, step, unit = '', get = () => params[key], set = v => params[key] = v) {
@@ -54,7 +63,7 @@ function sideTable(title, key, max) {
   return t;
 }
 
-group('Building', slider('Floors', 'floors', 1, 2, 1), slider('Bays in x', 'bays_x', 1, 3, 1), slider('Bays in z', 'bays_z', 1, 3, 1),
+group('Building', slider('Floors', 'floors', 1, 2, 1), withHelp(slider('Bays in x', 'bays_x', 1, 3, 1), HELP.bay), withHelp(slider('Bays in z', 'bays_z', 1, 3, 1), HELP.bay),
   slider('Bay span x', 'span_x', 2, 8, 0.5, ' m'), slider('Bay span z', 'span_z', 2, 8, 0.5, ' m'), slider('Floor height', 'floor_height', 2.5, 4, 0.1, ' m'));
 group('Roof', select('Roof type', 'roof_type', [['flat', 'Flat'], ['shed', 'Shed'], ['gable', 'Gable']]), slider('Roof pitch', 'roof_pitch', 0, 45, 1, '°'));
 const f1 = checkbox('Floor 1', () => params.floor_visible[0], v => params.floor_visible[0] = v);
@@ -64,8 +73,8 @@ group('Show parts', el('div', { class: 'tg' },
 group('Doors per side', sideTable('Doors', 'doors', 4));
 group('Windows per side', sideTable('Windows', 'windows', 8),
   slider('Window width', 'window_w', 0.3, 4, 0.1, ' m'), slider('Window height', 'window_h', 0.3, 3.7, 0.1, ' m'));
-group('Structure', select('Material', 'material', Object.entries(MATERIALS).map(([k, m]) => [k, m.name])),
-  select('Beam type', 'beam_type', [['simply_supported', 'Simply supported'], ['cantilever', 'Cantilever']]),
+group('Structure', withHelp(select('Material', 'material', Object.entries(MATERIALS).map(([k, m]) => [k, m.name])), HELP.stiffer),
+  withHelp(select('Beam type', 'beam_type', [['simply_supported', 'Simply supported'], ['cantilever', 'Cantilever']]), HELP.cantilever + ' Simply supported = resting on a support at each end.'),
   slider('Beam width b', 'beam_b', 0.1, 0.6, 0.05, ' m'), slider('Beam depth h', 'beam_h', 0.15, 0.9, 0.05, ' m'));
 group('Loads', slider('Applied load', 'load', 0, 50, 1, ' kN/m'), el('p', { class: 'hint', text: 'kN/m = force per metre of beam length. A typical floor is about 5–15 kN/m.' }));
 
@@ -137,12 +146,12 @@ function renderAbout(ctx) {
 function openAbout(ctx) {
   renderAbout(ctx);
   const card = $('aboutcard');
+  const fold = card.querySelector('details'); if (fold) fold.open = true;
   card.scrollIntoView({ behavior: 'smooth', block: 'center' });
   card.focus({ preventScroll: true });
   card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash');
 }
 
-const beamLabel = id => { const m = id.match(/^beam-f(\d+)-(.+)$/); return m ? `Floor ${Number(m[1]) + 1}, beam ${m[2]} (${id.replace(/^beam-/, '')})` : id; };
 function showResults() {
   const w = check.beams.find(b => b.id === check.worstId);
   const t = building.totals;
@@ -151,7 +160,7 @@ function showResults() {
     ['Beams failing', String(check.failCount), check.failCount ? 'fail' : ''],
     ['Worst deflection', `${fmt(check.worstDeflectionMm)} mm`, w && !w.pass ? 'fail' : ''],
     ['Allowed (span ÷ 250)', w ? `${fmt(w.limitMm)} mm` : 'none'],
-    ['Worst beam', w ? beamLabel(w.id).replace(/ \(.*\)$/, '') : 'none'],
+    ['Worst beam', w ? componentName(w.id) : 'none', 'wrapok'],
     ['Worst beam result', w ? (w.pass ? 'PASS' : 'FAIL') : 'none', w && !w.pass ? 'fail' : 'pass'],
     ['Total weight', `${fmt(t.weightKN, 1)} kN`],
     ['Total mass', `${fmt(t.weightKg, 0)} kg`],
@@ -169,15 +178,19 @@ function sizeText(c) {
 
 function showDetails() {
   const box = $('detbody');
-  if (!selected) { box.replaceChildren(el('p', { class: 'muted', text: 'Click any part of the building.' })); return; }
+  if (!selected) { box.replaceChildren(el('p', { class: 'muted hintbox', text: SELECT_HINT })); return; }
   const c = selected, r = componentWeightCost(c, params.material);
-  const rows = [['Type', c.type + (c.type === 'wall' && c.side ? ` (${c.side})` : '')], ['ID', c.id], ['Size', sizeText(c)],
+  const rows = [['Part', componentName(c)], ['Type', c.type + (c.type === 'wall' && c.side ? ` (${c.side})` : '')], ['ID', c.id], ['Size', sizeText(c)],
     ['Material', MATERIALS[r.material].name + (c.type === 'slab' ? ' (slabs are always concrete)' : '')],
     ['Volume', `${fmt(r.volume, 4)} m³`], ['Weight', `${fmt(r.weightKN)} kN`], ['Mass', `${fmt(r.weightKg, 1)} kg`], ['Cost', inr(r.cost)]];
   if (c.type === 'beam') {
     const b = check.beams.find(x => x.id === c.id);
     rows.push(['Deflection', `${fmt(b.deflectionMm)} mm`], ['Allowed (span ÷ 250)', `${fmt(b.limitMm)} mm`], ['Share of limit', `${fmt(b.ratio * 100, 0)}%`], ['Result', b.pass ? 'PASS' : 'FAIL', b.pass ? 'pass' : 'fail']);
     box.replaceChildren(kv(rows), el('p', { class: b.pass ? 'msg pass' : 'msg fail', text: beamMessage(b, { material: params.material, type: buildingBeamType() }) }), aboutLink('analysis'));
+    return;
+  }
+  if (c.type === 'wall') {
+    box.replaceChildren(kv(rows), el('h3', { text: 'Doors and windows' }), el('ul', { class: 'plist' }, ...openingLines(c, v => fmt(v)).map(t => el('li', { text: t }))));
     return;
   }
   box.replaceChildren(kv(rows));
@@ -203,7 +216,7 @@ function showAnalysis() {
     sel.append(el('option', { value: 'simply', text: 'Simply supported' }), el('option', { value: 'cantilever', text: 'Cantilever' }));
     sel.value = type;
     sel.addEventListener('change', () => { anType = sel.value; showAnalysis(); });
-    out.push(el('p', { class: 'muted', text: beamLabel(selected.id) }), el('div', { class: 'row' }, el('label', { text: 'Support type' }), sel));
+    out.push(el('p', { class: 'muted', text: componentNameWithId(selected) }), el('div', { class: 'row' }, el('label', { text: 'Support type' }), sel));
     out.push(btn('Analyse beam', () => { analysed = true; showAnalysis(); }, '', 'Work out the sag of this one beam and compare it in all three materials'), el('p', { class: 'tip', text: 'Analyse beam: works out the sag of the selected beam only.' }));
     if (analysed) {
       const r = beamDeflection({ material: params.material, span: selected.length, b: selected.width, h: selected.height, load: params.load, type });
@@ -227,7 +240,7 @@ function showAnalysis() {
     out.push(el('p', { class: fails.length ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }), lp, kv([['Beams passing', `${check.passCount} of ${check.beams.length}`, 'pass'], ['Beams failing', String(check.failCount), fails.length ? 'fail' : 'pass']]));
     if (fails.length) {
       const ul = el('ul', { class: 'failist' });
-      fails.forEach(b => ul.append(el('li', { class: 'fail', text: `FAIL ${beamLabel(b.id)}: ${fmt(b.deflectionMm)} mm > ${fmt(b.limitMm)} mm` })));
+      fails.forEach(b => ul.append(el('li', { class: 'fail', title: b.id, text: `FAIL ${componentName(b.id)}: ${fmt(b.deflectionMm)} mm > ${fmt(b.limitMm)} mm` })));
       out.push(ul);
     } else out.push(el('p', { class: 'pass flag', text: 'All beams PASS.' }), el('p', { class: 'hint', text: 'This only checks beam bending, under the stated assumptions: see About this result.' }));
   }
@@ -251,7 +264,7 @@ function showMaterials() {
   const kids = [sw, el('h3', { text: 'Whole structure, same design in each material' }), whole];
   if (selected && selected.type === 'beam') {
     const cmp = compareBeam({ span: selected.length, b: selected.width, h: selected.height, load: params.load, type: anType ?? buildingBeamType() });
-    kids.push(el('h3', { text: `Selected beam (${selected.id.replace(/^beam-/, '')})` }),
+    kids.push(el('h3', { text: `Selected beam: ${componentName(selected)}` }),
       beamTable(['Material', 'Deflection', 'Result'], Object.entries(cmp).map(([k, v]) => [MATERIALS[k].name, `${fmt(v.deflectionMm)} mm`, v.pass ? 'PASS' : 'FAIL'])));
   } else kids.push(el('p', { class: 'muted', text: 'Select a beam to compare it across materials.' }));
   kids.push(el('p', { class: 'hint', text: 'Why is steel so heavy in total? Steel is about 3 times denser than concrete, and every material here uses the same beam and column section sizes, so the steel building simply weighs more.' }));
@@ -324,9 +337,12 @@ function paramList(diff) {
 
 function renderCompare() {
   if (!original || !building) return;
-  const dc = diffComponents(original.building.components, building.components);
-  viewerA.setModel(original.building, { layer, highlight: dc.original });
-  viewerB.setModel(building, { layer, highlight: dc.modified });
+  const dc = diffComponents(original.building.components, building.components, { material: false });
+  const byMaterial = original.params.material !== params.material;
+  viewerA.setModel(original.building, { layer, highlight: dc.original, byMaterial });
+  viewerB.setModel(building, { layer, highlight: dc.modified, byMaterial });
+  const cl = $('cmplegend'); cl.hidden = !byMaterial; cl.replaceChildren();
+  if (byMaterial) for (const k of [original.params.material, params.material]) cl.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(MATERIALS[k].name + (k === original.params.material ? ' (original)' : ' (modified)'))));
   const pd = diffParams(original.building.params, building.params);
   const rows = diffSummaries(original.summary, currentSummary());
   $('cebody').replaceChildren(el('div', { class: 'cols2' },
@@ -415,3 +431,14 @@ renderAbout(null);
 update();
 setOriginal('starting design', building.params);
 refreshSaved();
+
+// ---------- narrow screens: secondary cards fold up (desktop: always open) ----------
+const narrow = window.matchMedia('(max-width: 900px)');
+const FOLDED = ['cmpcard', 'analysis', 'matcard', 'aboutcard', 'versions', 'cause', 'vcompare'];
+function applyFolds() {
+  document.querySelectorAll('.card > details.fold').forEach(d => {
+    d.open = narrow.matches ? !FOLDED.includes(d.parentElement.id) : true;
+  });
+}
+document.querySelectorAll('.card > details.fold > summary').forEach(s => s.addEventListener('click', e => { if (!narrow.matches) e.preventDefault(); }));
+narrow.addEventListener('change', applyFolds); applyFolds();

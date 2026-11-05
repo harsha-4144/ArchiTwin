@@ -11,8 +11,8 @@ export function beamMessage(r, ctx = {}) {
   const d = mm(r.deflectionMm), l = mm(r.limitMm);
   if (r.pass) return `This beam bends ${d} mm; the limit is ${l} mm, so it passes (it uses ${Math.round(r.ratio * 100)}% of the allowed sag).`;
   const tips = ['a deeper beam (increase beam depth h; depth helps much more than width)'];
-  if (ctx.material !== 'steel') tips.push('a stiffer material such as steel');
-  tips.push(ctx.type === 'cantilever' ? 'a shorter overhang, or supports at both ends instead of a cantilever' : 'a shorter span (add a column or reduce the bay span)');
+  if (ctx.material !== 'steel') tips.push('a stiffer material such as steel (stiffer = bends less under the same load)');
+  tips.push(ctx.type === 'cantilever' ? 'a shorter overhang, or supports at both ends instead of a cantilever (a beam fixed at one end only, like a balcony)' : 'a shorter span (add a column or reduce the bay span; a bay is one grid cell between four columns)');
   if (tips.length === 3) return `This beam bends ${d} mm; the limit is ${l} mm. Try ${tips[0]}, ${tips[1]}, or ${tips[2]}.`;
   return `This beam bends ${d} mm; the limit is ${l} mm. Try ${tips[0]}, or ${tips[1]}.`;
 }
@@ -62,3 +62,11 @@ export const ABOUT_CONTEXT = {
   cause: { label: 'Cause and Effect', ids: ['limit', 'slab', 'load'] },
   versions: { label: 'Saved version comparison', ids: ['limit', 'load', 'slab'] },
 };
+
+// ---- plain-word help (bay, cantilever, stiffer) and the empty-selection hint ----
+export const HELP = {
+  bay: 'A bay is one rectangular grid cell between four columns.',
+  cantilever: 'A cantilever is a beam fixed at one end and free at the other, like a balcony.',
+  stiffer: 'Stiffer means it bends less under the same load (steel is stiffer than timber).',
+};
+export const SELECT_HINT = 'Click any beam, column, slab, wall or the roof in the 3D view to see its size, material, weight and cost.';

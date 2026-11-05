@@ -142,3 +142,30 @@ button.about-link{margin-top:8px;border:1px solid var(--teal);background:#fff;co
 @media (max-width:900px){.pair,.cols2{grid-template-columns:minmax(0,1fr)}}
 #resbody .kv dd{white-space:nowrap}
 #resbody .kv{grid-template-columns:auto 1fr}
+
+/* nits round 3 */
+@media (min-width:901px){
+  #center{display:contents}
+  #params{grid-row:1}
+  #viewcard{grid-column:2;grid-row:1}
+  #right{grid-row:1}
+  #cmpcard{grid-column:1/-1;grid-row:2}
+  #analysis{grid-column:1/-1;grid-row:3}
+  .view2{height:460px}
+}
+details.fold>summary{list-style:none;cursor:default}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary h2{margin-bottom:8px}
+@media (max-width:900px){
+  details.fold>summary{cursor:pointer}
+  details.fold>summary h2{margin-bottom:0}
+  details.fold[open]>summary h2{margin-bottom:8px}
+  details.fold>summary h2::after{content:"\25B8";margin-left:auto;color:var(--teal);font-size:18px}
+  details.fold[open]>summary h2::after{content:"\25BE"}
+}
+button.help{border:1px solid var(--teal);background:#fff;color:var(--teal);border-radius:50%;width:18px;height:18px;padding:0;font-size:11px;line-height:1;cursor:pointer;vertical-align:1px}
+.helpcap{margin:0 0 4px;padding:4px 8px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.hintbox{padding:8px 10px;background:#fff;border:1px dashed var(--teal);border-radius:10px}
+#cmplegend{margin:0 0 8px;font-size:13px;display:flex;gap:14px;flex-wrap:wrap}
+#cmplegend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px;border:1px solid #0003}
+#resbody .kv dd.wrapok{white-space:normal}

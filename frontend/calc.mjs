@@ -208,16 +208,16 @@ export function diffParams(a, b) {
   return out;
 }
 
-const compKey = c => JSON.stringify([c.type, c.material, c.size && [c.size.sx, c.size.sy, c.size.sz].map(v => +v.toFixed(6)),
+const compKey = (c, withMaterial = true) => JSON.stringify([c.type, withMaterial ? c.material : null, c.position && [c.position.x, c.position.y, c.position.z].map(v => +v.toFixed(6)), c.size && [c.size.sx, c.size.sy, c.size.sz].map(v => +v.toFixed(6)),
   c.area !== undefined ? +c.area.toFixed(6) : null, c.thickness ?? null, c.roofType ?? null, c.pitch ?? null,
   c.openings ? [c.openings.doors, c.openings.windows, c.openings.windowW, c.openings.windowH] : null]);
 
 // Components whose size, material or count differs between two buildings (matched by id).
 // Returns { original: Set of ids, modified: Set of ids }; an id present on one side only counts as a count difference.
-export function diffComponents(compsA, compsB) {
+export function diffComponents(compsA, compsB, { material = true } = {}) {
   const ma = new Map(compsA.map(c => [c.id, c])), mb = new Map(compsB.map(c => [c.id, c]));
   const original = new Set(), modified = new Set();
-  for (const [id, c] of ma) if (!mb.has(id) || compKey(c) !== compKey(mb.get(id))) original.add(id);
-  for (const [id, c] of mb) if (!ma.has(id) || compKey(c) !== compKey(ma.get(id))) modified.add(id);
+  for (const [id, c] of ma) if (!mb.has(id) || compKey(c, material) !== compKey(mb.get(id), material)) original.add(id);
+  for (const [id, c] of mb) if (!ma.has(id) || compKey(c, material) !== compKey(ma.get(id), material)) modified.add(id);
   return { original, modified };
 }
