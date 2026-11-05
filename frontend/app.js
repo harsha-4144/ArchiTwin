@@ -1,11 +1,12 @@
 // app.js - UI wiring and display formatting only. All numbers come from calc.mjs / building.mjs.
 import { generateBuilding, DEFAULT_PARAMS, SIDES } from './building.mjs';
-import { MATERIALS, checkAll, componentWeightCost } from './calc.mjs';
+import { MATERIALS, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
 
 const $ = id => document.getElementById(id);
 const params = JSON.parse(JSON.stringify(DEFAULT_PARAMS));
 let layer = 'architecture', cmap = false, building = null, check = null, selected = null;
+let checkedAll = false, analysed = false, anType = null;
 
 const fmt = (v, d = 2) => Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
 const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
@@ -76,7 +77,7 @@ $('cmap').addEventListener('change', e => { cmap = e.target.checked; render(); }
 $('reset').addEventListener('click', () => viewer.resetView());
 
 // ---------- model ----------
-const viewer = createViewer($('view'), c => { selected = c; showDetails(); });
+const viewer = createViewer($('view'), c => { selected = c; analysed = false; anType = null; showDetails(); showAnalysis(); showMaterials(); });
 
 function update() {
   f2.input.disabled = params.floors < 2;
@@ -90,13 +91,14 @@ function update() {
   }
   if (selected && !building.components.some(c => c.id === selected.id)) selected = null;
   else if (selected) selected = building.components.find(c => c.id === selected.id);
-  render(); showResults(); showDetails();
+  render(); showResults(); showDetails(); showAnalysis(); showMaterials();
 }
 
 function render() {
   [...seg.children].forEach(b => b.setAttribute('aria-checked', String(b.dataset.layer === layer)));
   const ratios = cmap ? Object.fromEntries(check.beams.map(r => [r.id, r.ratio])) : null;
-  viewer.setModel(building, { layer, ratios });
+  const passFail = checkedAll ? Object.fromEntries(check.beams.map(r => [r.id, r.pass])) : null;
+  viewer.setModel(building, { layer, ratios, passFail });
   $('legend').hidden = !cmap;
   const ml = $('matlegend'); ml.hidden = layer !== 'materials'; ml.replaceChildren();
   for (const [k, m] of Object.entries(MATERIALS)) ml.append(el('span', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), document.createTextNode(m.name)));
@@ -144,6 +146,80 @@ function showDetails() {
     rows.push(['Deflection', `${fmt(b.deflectionMm)} mm`], ['Allowed (L/250)', `${fmt(b.limitMm)} mm`], ['Share of limit', `${fmt(b.ratio * 100, 0)}%`], ['Result', b.pass ? 'PASS' : 'FAIL', b.pass ? 'pass' : 'fail']);
   }
   box.replaceChildren(kv(rows));
+}
+
+const buildingBeamType = () => building.components.find(c => c.type === 'beam')?.beamType ?? 'simply';
+const beamTable = (head, rows, foot) => {
+  const t = el('table'); t.append(el('thead', {}, el('tr', {}, ...head.map(h => el('th', { text: h })))));
+  const tb = el('tbody'); rows.forEach(r => tb.append(el('tr', {}, ...r.map(x => el('td', { text: x }))))); t.append(tb);
+  if (foot) t.append(el('tfoot', {}, el('tr', {}, ...foot.map(x => el('td', { text: x })))));
+  return t;
+};
+const btn = (text, fn, cls = '') => { const b = el('button', { type: 'button', text, class: cls }); b.addEventListener('click', fn); return b; };
+
+function showAnalysis() {
+  const box = $('anbody'), out = [];
+  // (a) analyse selected beam
+  out.push(el('h3', { text: 'Selected beam' }));
+  if (!selected || selected.type !== 'beam') out.push(el('p', { class: 'muted', text: 'Click a beam in the model (use the Structure layer), then press Analyse beam.' }));
+  else {
+    const type = anType ?? buildingBeamType();
+    const sel = el('select', { 'aria-label': 'Beam type for this analysis' });
+    sel.append(el('option', { value: 'simply', text: 'Simply supported' }), el('option', { value: 'cantilever', text: 'Cantilever' }));
+    sel.value = type;
+    sel.addEventListener('change', () => { anType = sel.value; showAnalysis(); });
+    out.push(el('p', { class: 'muted', text: selected.id }), el('div', { class: 'row' }, el('label', { text: 'Support type' }), sel));
+    out.push(btn('Analyse beam', () => { analysed = true; showAnalysis(); }));
+    if (analysed) {
+      const r = beamDeflection({ material: params.material, span: selected.length, b: selected.width, h: selected.height, load: params.load, type });
+      out.push(kv([
+        ['Deflection', `${fmt(r.deflectionMm)} mm`], ['Limit (span/250)', `${fmt(r.limitMm)} mm`], ['Ratio', fmt(r.ratio, 2)],
+        ['Result', r.pass ? 'PASS' : 'FAIL', r.pass ? 'pass' : 'fail'],
+        ['Self weight', `${fmt(r.selfWeightKNm)} kN/m`], ['Total w', `${fmt(r.totalKNm)} kN/m`],
+      ]));
+      const cmp = compareBeam({ span: selected.length, b: selected.width, h: selected.height, load: params.load, type });
+      out.push(el('h3', { text: 'This beam in each material' }),
+        beamTable(['Material', 'Deflection', 'Limit', 'Result'], Object.entries(cmp).map(([k, v]) => [MATERIALS[k].name, `${fmt(v.deflectionMm)} mm`, `${fmt(v.limitMm)} mm`, v.pass ? 'PASS' : 'FAIL'])));
+    }
+  }
+  // (b) check all
+  out.push(el('h3', { text: 'All beams' }));
+  out.push(btn('Check all beams', () => { checkedAll = true; render(); showAnalysis(); }));
+  if (checkedAll) {
+    out.push(btn('Clear colours', () => { checkedAll = false; render(); showAnalysis(); }, 'alt'));
+    const fails = check.beams.filter(b => !b.pass);
+    const lp = el('p', { class: 'legpf' }, el('i', { style: 'background:#2e9e5b' }), document.createTextNode('pass'), el('i', { style: 'background:#d0382b' }), document.createTextNode('fail'));
+    out.push(lp, kv([['Beams passing', `${check.passCount} of ${check.beams.length}`, 'pass'], ['Beams failing', String(check.failCount), fails.length ? 'fail' : 'pass']]));
+    if (fails.length) {
+      const ul = el('ul', { class: 'failist' });
+      fails.forEach(b => ul.append(el('li', { class: 'fail', text: `FAIL ${b.id.replace(/^beam-/, '')}: ${fmt(b.deflectionMm)} mm > ${fmt(b.limitMm)} mm` })));
+      out.push(ul);
+    } else out.push(el('p', { class: 'pass flag', text: 'All beams PASS.' }));
+  }
+  // (c) totals
+  const t = totalsByType(building.components, params.material);
+  out.push(el('h3', { text: 'Whole-building totals' }),
+    beamTable(['Part', 'Count', 'Weight kN', 'Cost'], TYPE_GROUPS.map(([k, n]) => [n, String(t.groups[k].count), fmt(t.groups[k].weightKN, 1), inr(t.groups[k].cost)]),
+      ['Total', String(building.components.length), fmt(t.total.weightKN, 1), inr(t.total.cost)]));
+  box.replaceChildren(...out);
+}
+
+function showMaterials() {
+  const sw = el('div', { class: 'sw' });
+  for (const [k, m] of Object.entries(MATERIALS)) sw.append(el('div', {}, el('i', { style: `background:${hex(MAT_COLOURS[k])}` }), el('b', { text: m.name }),
+    el('div', { text: `Density ${fmt(m.density, 0)} kg/m³` }), el('div', { text: `Conductivity ${fmt(m.conductivity, 2)} W/mK` }),
+    el('div', { text: `Durability ${m.durability}${DURABILITY_ASSUMED ? ' (assumed rating)' : ''}` }), el('div', { text: `Cost ~${inr(m.costPerM3)} per m³` })));
+  const cm = compareMaterials(building.components, { load: params.load, beamType: buildingBeamType() });
+  const nb = check.beams.length;
+  const whole = beamTable(['Material', 'Weight kN', 'Cost', 'Beams passing'], Object.entries(cm).map(([k, v]) => [MATERIALS[k].name, fmt(v.weightKN, 1), inr(v.cost), `${v.passCount} of ${nb}`]));
+  const kids = [sw, el('h3', { text: 'Whole structure, same design in each material' }), whole];
+  if (selected && selected.type === 'beam') {
+    const cmp = compareBeam({ span: selected.length, b: selected.width, h: selected.height, load: params.load, type: anType ?? buildingBeamType() });
+    kids.push(el('h3', { text: `Selected beam (${selected.id.replace(/^beam-/, '')})` }),
+      beamTable(['Material', 'Deflection', 'Result'], Object.entries(cmp).map(([k, v]) => [MATERIALS[k].name, `${fmt(v.deflectionMm)} mm`, v.pass ? 'PASS' : 'FAIL'])));
+  } else kids.push(el('p', { class: 'muted', text: 'Select a beam to compare it across materials.' }));
+  kids.push(el('p', { class: 'hint', text: 'All property, durability and cost values are rounded teaching assumptions, not design data. Slabs are always concrete.' }));
+  $('matbody').replaceChildren(...kids);
 }
 
 window.__adt = { viewer, params, get building() { return building; }, get check() { return check; } };

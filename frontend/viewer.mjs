@@ -101,7 +101,7 @@ export function createViewer(container, onPick) {
 
   function setModel(b, opts = {}) {
     lastModel = b; lastOpts = opts;
-    const { layer = 'architecture', ratios = null } = opts;
+    const { layer = 'architecture', ratios = null, passFail = null } = opts;
     scene.remove(group);
     group.traverse(o => { if (o.geometry && o.geometry !== unit && o.geometry !== edgeGeo) o.geometry.dispose(); });
     group = new THREE.Group(); scene.add(group); byId.clear();
@@ -113,6 +113,8 @@ export function createViewer(container, onPick) {
       let mat = getMat(hex, c.type === 'wall' ? 0.5 : (c.type === 'slab' && layer === 'structure') ? 0.4 : 1);
       if (c.type === 'beam' && ratios && ratios[c.id] !== undefined)
         mat = getMat(ratioColour(ratios[c.id]).getHex());
+      if (c.type === 'beam' && passFail && passFail[c.id] !== undefined)
+        mat = getMat(passFail[c.id] ? 0x2e9e5b : 0xd0382b);
       let mesh;
       if (c.type === 'roof' && c.roofType !== 'flat') {
         mesh = new THREE.Mesh(roofGeometry(c, b), getMat(hex, 1));

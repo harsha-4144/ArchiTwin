@@ -130,3 +130,28 @@ export function diffResults(a, b) {
     cost: row(a.totals.cost, b.totals.cost),
   };
 }
+
+// ---- Stage 5 additions ----
+export const TYPE_GROUPS = [['column', 'Columns'], ['beam', 'Beams'], ['slab', 'Slabs'], ['wall', 'Walls'], ['roof', 'Roof']];
+
+// Weight and cost per component type; `total` is the sum of the groups (door/window types, if any, go to 'other').
+export function totalsByType(components, material) {
+  const groups = {};
+  for (const [k] of TYPE_GROUPS) groups[k] = { count: 0, weightKg: 0, weightKN: 0, cost: 0 };
+  groups.other = { count: 0, weightKg: 0, weightKN: 0, cost: 0 };
+  for (const c of components) {
+    const r = componentWeightCost(c, material);
+    const g = groups[c.type] ?? groups.other;
+    g.count++; g.weightKg += r.weightKg; g.cost += r.cost;
+  }
+  let weightKg = 0, cost = 0;
+  for (const g of Object.values(groups)) { g.weightKN = (g.weightKg * G) / 1000; weightKg += g.weightKg; cost += g.cost; }
+  return { groups, total: { weightKg, weightKN: (weightKg * G) / 1000, cost } };
+}
+
+// One beam (span, b, h in m; load kN/m) in every material.
+export function compareBeam({ span, b, h, load, type = 'simply' }) {
+  const out = {};
+  for (const key of Object.keys(MATERIALS)) out[key] = beamDeflection({ material: key, span, b, h, load, type });
+  return out;
+}

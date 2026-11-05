@@ -36,3 +36,6 @@
 - math: PASS. spec: no missing items; flagged `compareMaterials`/`diffResults` (calc.mjs) and Expected Results panel as early stage 5/6 content — kept (needed later, panel is in plan layout).
 - code: non-finite numbers gave 500 -> fixed (422 + tests); run.sh printed "running" on bind failure -> fixed (port check). design: 6 layout issues (hidden panel scroll, wrapped values, grid gap, small 3D view, low-contrast text, mobile badge order) -> fixed.
 - Commit "Review fixes M1". pytest 29, node 21.
+### Stage 5: Analysis panel — gate PASS
+- stage5.test.mjs proves check-all failing set == beams failing beamDeflection (mixed case) and totals == sum of parts. Node 24 pass, pytest 33. Browser: timber 8x3 m config -> 6 of 12 red/green, consistent across Expected Results, list and material card; no console errors; no overflow at 390px.
+- Assumption: Analysis card has no number badge (badges 1-6 follow the mind map cards). Right column is long; design review at M2.
