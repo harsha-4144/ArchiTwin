@@ -3,7 +3,8 @@ import { generateBuilding, validateParams, DEFAULT_PARAMS, SIDES } from './build
 import { MATERIALS, summarize, diffSummaries, diffParams, diffComponents, checkAll, componentWeightCost, beamDeflection, totalsByType, compareMaterials, compareBeam, TYPE_GROUPS, DURABILITY_ASSUMED } from './calc.mjs';
 import { createViewer, MAT_COLOURS } from './viewer.mjs';
 import { ICONS, statusChip } from './js/icons.mjs';
-import { PRESETS } from './presets.mjs';
+import { PRESETS, resolvePreset } from './presets.mjs';
+import { generateArchitecture, featureTotals, DECORATIVE_NOTE } from './architecture.mjs';
 import { beamMessage, buildingMessage, materialMessage, DEFLECTION_EXPLAINER, ABOUT, ABOUT_CONTEXT, HELP, SELECT_HINT } from './messages.mjs';
 import { componentName, componentNameWithId, openingLines } from './names.mjs';
 import { bendShape } from './viewer.mjs';
@@ -43,6 +44,8 @@ const $ = id => document.getElementById(id);
 const params = JSON.parse(JSON.stringify(DEFAULT_PARAMS));
 let layer = 'architecture', cmap = false, building = null, check = null, selected = null;
 let checkedAll = false, analysed = false, anType = null;
+let curPreset = null, arch = [];   // arch = decorative features of the chosen preset (never part of building.components)
+const allParts = () => [...building.components, ...arch];
 
 const fmt = (v, d = 2) => Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
 const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
@@ -138,6 +141,7 @@ const tip = el('div', { id: 'tip', role: 'tooltip', hidden: '' });
 document.body.append(tip);
 function tipSize(c) {
   const mm = v => fmt(v * 1000, 0);
+  if (c.type === 'feature') return `${fmt(c.size.sx)} × ${fmt(c.size.sz)} × ${fmt(c.size.sy)} m, decorative`;
   if (c.type === 'slab' || c.type === 'roof') return `${fmt(c.area)} m² × ${mm(c.thickness)} mm`;
   if (c.type === 'wall') return `${fmt(c.length)} × ${fmt(c.height)} m × ${mm(c.thickness)} mm`;
   if (c.type === 'column') return `${mm(c.width)} × ${mm(c.length)} mm × ${fmt(c.height)} m`;
@@ -145,7 +149,7 @@ function tipSize(c) {
 }
 function showTip(c, x, y) {
   if (!c || !building) { tip.hidden = true; return; }
-  const r = componentWeightCost(c, params.material);
+  const r = componentWeightCost(c, c.type === 'feature' ? c.material : params.material);
   tip.replaceChildren(el('b', { text: componentName(c) }), el('span', { text: `${MATERIALS[r.material].name} · ${tipSize(c)}` }));
   tip.hidden = false;
   const w = tip.offsetWidth, h = tip.offsetHeight;
@@ -168,7 +172,7 @@ const viewer = makeViewer($('view'), c => pickPart(c), (c, x, y) => { if (c) sho
 const picker = $('partpick');
 let pickerKey = '';
 function fillPicker() {
-  const key = building.components.map(c => c.id).join('|');
+  const key = allParts().map(c => c.id).join('|');
   if (key !== pickerKey) {
     pickerKey = key;
     picker.replaceChildren(el('option', { value: '', text: 'Choose a part…' }));
@@ -177,25 +181,31 @@ function fillPicker() {
       for (const c of building.components) if (c.type === t) og.append(el('option', { value: c.id, text: componentName(c) }));
       if (og.children.length) picker.append(og);
     }
+    if (arch.length) {
+      const og = el('optgroup', { label: 'Decorative features (not in structural totals)' });
+      for (const c of arch) og.append(el('option', { value: c.id, text: componentName(c) }));
+      picker.append(og);
+    }
   }
   syncPicker();
 }
 function syncPicker() { picker.value = selected ? selected.id : ''; }
-picker.addEventListener('change', () => { const c = building.components.find(x => x.id === picker.value); if (c) pickPart(c, true); });
+picker.addEventListener('change', () => { const c = allParts().find(x => x.id === picker.value); if (c) pickPart(c, true); });
 $('bendnote').textContent = `Bending shown ×${BEND_SCALE}: drawing only, the numbers are exact. Very large bends are clipped in the drawing.`;
 
 function update() {
   f2.input.disabled = params.floors < 2;
   try {
     building = generateBuilding(params);
+    arch = curPreset ? generateArchitecture(params, building, curPreset.features) : [];
     check = checkAll(building.components, { load: params.load, beamType: building.components.find(c => c.type === 'beam')?.beamType, material: params.material });
     $('err').textContent = '';
   } catch (e) {
     $('err').textContent = 'Not applied: ' + e.message;
     return;
   }
-  if (selected && !building.components.some(c => c.id === selected.id)) selected = null;
-  else if (selected) selected = building.components.find(c => c.id === selected.id);
+  if (selected && !allParts().some(c => c.id === selected.id)) selected = null;
+  else if (selected) selected = allParts().find(c => c.id === selected.id);
   fillPicker(); render(); showResults(); showDetails(); showAnalysis(); showMaterials(); showBend();
 }
 
@@ -204,7 +214,7 @@ function render() {
   const ratios = cmap ? Object.fromEntries(check.beams.map(r => [r.id, r.ratio])) : null;
   const passFail = checkedAll ? Object.fromEntries(check.beams.map(r => [r.id, r.pass])) : null;
   const deflections = Object.fromEntries(check.beams.map(r => [r.id, r.deflectionMm]));
-  viewer.setModel(building, { layer, ratios, passFail, deflections, bendScale: BEND_SCALE });
+  viewer.setModel(building, { layer, ratios, passFail, deflections, bendScale: BEND_SCALE, features: arch, palette: curPreset ? curPreset.palette : null });
   if (!render.done) { render.done = true; const st = $('viewstate'); if (st) st.remove(); }
   $('legend').hidden = !cmap;
   const ml = $('matlegend'); ml.hidden = layer !== 'materials'; ml.replaceChildren();
@@ -264,7 +274,8 @@ function showResults() {
     ['Total mass', `${fmt(t.weightKg, 0)} kg`, '', { key: 'kg', v: t.weightKg, f: n => `${fmt(n, 0)} kg` }],
     ['Estimated cost', inr(t.cost), '', { key: 'cost', v: t.cost, f: inr }],
   ]), el('p', { class: check.failCount ? 'msg fail' : 'msg pass', text: buildingMessage(check, { material: params.material, type: buildingBeamType() }) }),
-  el('p', { class: 'hint', text: DEFLECTION_EXPLAINER }), aboutLink('results'));
+  el('p', { class: 'hint', text: DEFLECTION_EXPLAINER }),
+  ...(arch.length ? [el('p', { class: 'hint', text: `Decorative features (${featureTotals(arch).count} parts, about ${fmt(featureTotals(arch).weightKg, 0)} kg) are listed in the part picker but are not in these totals or beam checks.` })] : []), aboutLink('results'));
 }
 
 function sizeText(c) {
@@ -278,7 +289,16 @@ function sizeText(c) {
 function showDetails() {
   const box = $('detbody');
   if (!selected) { box.replaceChildren(el('p', { class: 'muted hintbox', text: SELECT_HINT })); return; }
-  const c = selected, r = componentWeightCost(c, params.material);
+  const c = selected;
+  if (c.type === 'feature') {
+    const r = componentWeightCost(c, c.material), mm = v => fmt(v * 1000, 0);
+    box.replaceChildren(kv([['Part', c.name], ['Type', `Decorative feature (${c.kind.replace(/-/g, ' ')})`], ['ID', c.id],
+      ['Size', `${fmt(c.size.sx)} × ${fmt(c.size.sz)} m on plan, ${fmt(c.size.sy)} m high` + (c.shape === 'prism' ? ' (gable shape, weight uses half the height)' : '')],
+      ['Material', MATERIALS[r.material].name], ['Volume', `${fmt(r.volume, 4)} m³`], ['Weight', `${fmt(r.weightKN)} kN`], ['Mass', `${fmt(r.weightKg, 1)} kg`], ['Cost', inr(r.cost)]]),
+      el('p', { class: 'msg decorative', text: DECORATIVE_NOTE + ' Shown in the Architecture and Materials layers only.' }));
+    return;
+  }
+  const r = componentWeightCost(c, params.material);
   const rows = [['Part', componentName(c)], ['Type', c.type + (c.type === 'wall' && c.side ? ` (${c.side})` : '')], ['ID', c.id], ['Size', sizeText(c)],
     ['Material', MATERIALS[r.material].name + (c.type === 'slab' ? ' (slabs are always concrete)' : '')],
     ['Volume', `${fmt(r.volume, 4)} m³`], ['Weight', `${fmt(r.weightKN)} kN`], ['Mass', `${fmt(r.weightKg, 1)} kg`], ['Cost', inr(r.cost)]];
@@ -542,7 +562,7 @@ function loadDesign(d) {
     const p = validateParams(d.params);
     Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
   } catch (e) { say('Cannot load: ' + e.message); return; }
-  refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`); setQuery('design', d.id);
+  curPreset = null; refreshers.forEach(f => f()); selected = null; update(); say(`Loaded "${d.name}".`); setQuery('design', d.id);
 }
 async function removeDesign(d) {
   try { await api('/designs/' + d.id, { method: 'DELETE' }); say(`Deleted "${d.name}".`); await refreshSaved(); } catch (e) { say('Delete failed: ' + e.message); }
@@ -563,16 +583,17 @@ $('vcA').addEventListener('change', renderVersionCompare); $('vcB').addEventList
 function setQuery(k, v) { const u = new URL(location.href); u.search = ''; u.searchParams.set(k, v); history.replaceState(null, '', u); }
 const presetSel = $('preset');
 presetSel.append(el('option', { value: '', text: 'Starting design' }));
-for (const p of PRESETS) presetSel.append(el('option', { value: p.id, text: p.name }));
+for (const p of PRESETS) presetSel.append(el('option', { value: p.id, text: p.name + (p.demo ? ' (demo)' : '') + ' - ' + p.tagline }));
 function loadPreset(id) {
-  const pr = PRESETS.find(x => x.id === id); if (!pr) return;
+  const pr = resolvePreset(id); if (!pr) return;
   try {
     const p = validateParams(pr.params);
     Object.keys(params).forEach(k => delete params[k]); Object.assign(params, deep(p));
   } catch (e) { $('err').textContent = 'Cannot load: ' + e.message; return; }
+  curPreset = pr;
   refreshers.forEach(f => f()); selected = null; analysed = false; anType = null; checkedAll = false;
-  $('presetblurb').textContent = pr.blurb; presetSel.value = id;
-  setQuery('preset', id);
+  $('presetblurb').textContent = pr.tagline + ' ' + pr.blurb; presetSel.value = pr.id;
+  setQuery('preset', pr.id);
   update();
   if (original) setOriginal(pr.name, pr.params);
 }
@@ -605,14 +626,14 @@ document.querySelectorAll('#cmpmode button').forEach(b => b.addEventListener('cl
   requestAnimationFrame(() => { renderCompare(); });
 }));
 
-window.__adt = { loadPreset, setSplit, get splitPct() { return splitPct; }, openAbout, viewerA, viewerB, viewer, params, get building() { return building; }, get check() { return check; } };
+window.__adt = { loadPreset, setSplit, get splitPct() { return splitPct; }, openAbout, viewerA, viewerB, viewer, params, get building() { return building; }, get check() { return check; }, get arch() { return arch; } };
 renderAbout(null);
 update();
 setOriginal('starting design', building.params);
 refreshSaved();
 {
-  const q = new URLSearchParams(location.search), norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (q.has('preset')) { const pr = PRESETS.find(p => p.id === norm(q.get('preset'))); if (pr) loadPreset(pr.id); else say('Unknown preset in the link; showing the starting design.'); }
+  const q = new URLSearchParams(location.search);
+  if (q.has('preset')) { const pr = resolvePreset(q.get('preset')); if (pr) loadPreset(pr.id); else say('Unknown preset in the link; showing the starting design.'); }
   else if (q.has('design')) api('/designs/' + encodeURIComponent(q.get('design'))).then(loadDesign).catch(e => say('Could not open that saved design: ' + e.message));
 }
 

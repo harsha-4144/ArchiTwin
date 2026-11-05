@@ -6,6 +6,10 @@ import { OrbitControls } from './vendor/OrbitControls.js';
 export const MAT_COLOURS = { timber: 0xc19a6b, steel: 0x8a9aa8, concrete: 0xb4b4b4 };
 const ARCH_COLOURS = { column: 0xcfc6b8, beam: 0xcfc6b8, slab: 0xd9d2c5, wall: 0xf1e8d6, roof: 0xb5654a };
 const STRUCTURE = new Set(['column', 'beam', 'slab']);
+const hexNum = h => typeof h === 'string' ? parseInt(h.replace('#', ''), 16) : h;
+// Fallback colours for decorative features when no preset palette is given.
+const DEFAULT_PALETTE = { wall: '#f1e8d6', trim: '#cfc6b8', roof: '#b5654a', accent: '#8b5a2b' };
+const FIXED_ROLES = { brick: 0x9a5445, glass: 0x9ec9d9 };
 const FADE_TYPES = new Set(['wall', 'roof', 'opening']);   // parts that fade in/out instead of popping
 const BEND_MS = 250, FADE_MS = 300, CAM_MS = 500, SEG = 16;
 const reducedMotion = () => matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -25,8 +29,10 @@ export function ratioColour(ratio) {
   return new THREE.Color().setHSL((1 - t) * 0.62, 0.8, 0.5);
 }
 
-export function createViewer(container, onPick, onHover = null) {
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+// vopts.thumb: still-image mode for thumbnails (no animation loop, no fades, buffer kept so toDataURL works).
+export function createViewer(container, onPick, onHover = null, vopts = {}) {
+  const thumb = !!vopts.thumb;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: thumb });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   container.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
@@ -80,7 +86,8 @@ export function createViewer(container, onPick, onHover = null) {
     renderer.setSize(w, h); dirty = true;
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
-  new ResizeObserver(resize).observe(container);
+  if (!thumb) new ResizeObserver(resize).observe(container);
+  if (thumb) { const gr = new THREE.Mesh(unit, new THREE.MeshStandardMaterial({ color: 0xe4d9bd, roughness: 1 })); gr.scale.set(80, 0.02, 80); gr.position.set(6, -0.012, 6); scene.add(gr); }
 
   function flyTo(pos, tgt, ms = CAM_MS) {
     if (reducedMotion()) { camera.position.copy(pos); controls.target.copy(tgt); controls.update(); dirty = true; fly = null; return; }
@@ -124,7 +131,7 @@ export function createViewer(container, onPick, onHover = null) {
     return g;
   }
 
-  function addOpenings(c, parent, fade) {
+  function addOpenings(c, parent, fade, pal = null) {
     const o = c.openings; if (!o || c.interior) return;
     const n = o.doors + o.windows; if (!n) return;
     const alongX = c.side === 'north' || c.side === 'south';
@@ -135,7 +142,7 @@ export function createViewer(container, onPick, onHover = null) {
       const w = isDoor ? o.doorW : o.windowW, h = isDoor ? o.doorH : o.windowH;
       const yc = y0 + (isDoor ? h / 2 : o.sill + h / 2);
       const off = (k + 0.5) * slot - c.length / 2;
-      const m = new THREE.Mesh(unit, getMat(isDoor ? 0x8b5a2b : 0x7ec3e6, isDoor ? 1 : 0.7));
+      const m = new THREE.Mesh(unit, getMat(isDoor ? (pal ? hexNum(pal.accent) : 0x8b5a2b) : 0x7ec3e6, isDoor ? 1 : 0.7));
       const depth = c.width + 0.06;
       m.scale.set(alongX ? w : depth, h, alongX ? depth : w);
       m.position.set(c.position.x + (alongX ? off : 0), yc, c.position.z + (alongX ? 0 : off));
@@ -206,18 +213,21 @@ export function createViewer(container, onPick, onHover = null) {
 
   function setModel(b, opts = {}) {
     lastModel = b; lastOpts = opts;
-    const { layer = 'architecture', ratios = null, passFail = null, highlight = null, byMaterial = false, deflections = null, bendScale = 0 } = opts;
+    const { layer = 'architecture', ratios = null, passFail = null, highlight = null, byMaterial = false, deflections = null, bendScale = 0, features = null, palette = null, wallOpacity = 0.5 } = opts;
     dirty = true;
-    const oldGroup = group, oldFade = prevFade, reduced = reducedMotion();
+    const oldGroup = group, oldFade = prevFade, reduced = thumb || reducedMotion();
+    const pal = layer === 'architecture' ? (palette || null) : null;
+    const palHex = role => FIXED_ROLES[role] ?? hexNum((pal || DEFAULT_PALETTE)[role] ?? DEFAULT_PALETTE.trim);
     group = new THREE.Group(); byId.clear(); hover = null; hoverCb(null);
     const fadeNow = new Map(), seen = new Set();
     for (const c of b.components) {
       const isStruct = STRUCTURE.has(c.type);
       if (layer === 'structure' && !isStruct) continue;
       let hex = layer === 'materials' ? MAT_COLOURS[c.type === 'slab' ? 'concrete' : c.material] : ARCH_COLOURS[c.type];
+      if (pal) hex = palHex({ column: 'trim', beam: 'trim', slab: 'trim', wall: 'wall', roof: 'roof' }[c.type] || 'trim');
       if (layer === 'structure') hex = c.type === 'beam' ? 0x6f8f8c : 0xa79f90;
       if (byMaterial) hex = MAT_COLOURS[c.type === 'slab' ? 'concrete' : c.material];
-      let mat = getMat(hex, c.type === 'wall' ? 0.5 : (c.type === 'slab' && layer === 'structure') ? 0.4 : 1);
+      let mat = getMat(hex, c.type === 'wall' ? wallOpacity : (c.type === 'slab' && layer === 'structure') ? 0.4 : 1);
       if (c.type === 'beam' && ratios && ratios[c.id] !== undefined)
         mat = getMat(ratioColour(ratios[c.id]).getHex());
       if (c.type === 'beam' && passFail && passFail[c.id] !== undefined)
@@ -243,7 +253,29 @@ export function createViewer(container, onPick, onHover = null) {
       mesh.userData.comp = c;
       group.add(mesh); byId.set(c.id, mesh);
       if (FADE_TYPES.has(c.type)) fadeNow.set(c.id, mesh);
-      if (c.type === 'wall' && layer !== 'structure') addOpenings(c, group, fadeNow);
+      if (c.type === 'wall' && layer !== 'structure') addOpenings(c, group, fadeNow, pal);
+    }
+    // decorative architecture parts: only in the Architecture and Materials layers; never part of b.components
+    if (features && layer !== 'structure') for (const c of features) {
+      const hexF = layer === 'materials' ? MAT_COLOURS[c.material] : palHex(c.role);
+      const hi = highlight && highlight.has(c.id);
+      const fm = getMat(hexF, c.opacity ?? 1);
+      let mesh;
+      if (c.shape === 'prism') {
+        const sh = new THREE.Shape(); sh.moveTo(-c.size.sx / 2, 0); sh.lineTo(c.size.sx / 2, 0); sh.lineTo(0, c.size.sy); sh.closePath();
+        const g = new THREE.ExtrudeGeometry(sh, { depth: c.size.sz, bevelEnabled: false });
+        g.translate(0, -c.size.sy / 2, -c.size.sz / 2);
+        mesh = new THREE.Mesh(g, hi ? getHiMat(fm) : fm);
+        mesh.position.set(c.position.x, c.position.y, c.position.z);
+      } else {
+        mesh = new THREE.Mesh(unit, hi ? getHiMat(fm) : fm);
+        mesh.scale.set(c.size.sx, c.size.sy, c.size.sz);
+        mesh.position.set(c.position.x, c.position.y, c.position.z);
+        mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
+      }
+      if (c.rotX) mesh.rotation.x = c.rotX;
+      mesh.userData.comp = c;
+      group.add(mesh); byId.set(c.id, mesh);
     }
     for (const id of [...bend.keys()]) if (!seen.has(id)) bend.delete(id);
     // swap the groups; walls and roof that leave fade out as ghosts, new ones fade in
@@ -328,7 +360,7 @@ export function createViewer(container, onPick, onHover = null) {
   el.addEventListener('pointerdown', () => { setHover(null, 0, 0); });
 
   // Render only when something changed (three viewers share the page, so idle ones cost nothing).
-  renderer.setAnimationLoop(() => {
+  if (!thumb) renderer.setAnimationLoop(() => {
     const now = performance.now();
     if (fly) {
       const p = Math.min(1, (now - fly.start) / fly.ms), e = easeInOut(p);
@@ -342,9 +374,23 @@ export function createViewer(container, onPick, onHover = null) {
     if (moved || dirty) { dirty = false; renderer.render(scene, camera); }
   });
   resize();
+  // Thumbnail: size the canvas, fit the camera to everything drawn (3/4 view from the south-east), render once, return a data URL.
+  function snapshot(w, h) {
+    renderer.setPixelRatio(1); renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    grid.visible = false;
+    const box = new THREE.Box3().setFromObject(group), ctr = box.getCenter(new THREE.Vector3());
+    const r = box.getBoundingSphere(new THREE.Sphere()).radius;
+    const vf = camera.fov * Math.PI / 360, hf = Math.atan(Math.tan(vf) * camera.aspect);
+    const dir = new THREE.Vector3(1.2, 0.75, 1.5).normalize();
+    camera.position.copy(ctr).addScaledVector(dir, r / Math.sin(Math.min(vf, hf)) * 0.98);
+    camera.lookAt(ctr);
+    renderer.render(scene, camera);
+    return renderer.domElement.toDataURL('image/jpeg', 0.88);
+  }
   const camState = () => ({ pos: camera.position.clone(), tgt: controls.target.clone() });
   let syncing = false;
-  return { setModel, select, resetView: () => { if (lastModel) frame(lastModel, [lastModel], true); }, focusOn,
+  return { setModel, select, snapshot, resetView: () => { if (lastModel) frame(lastModel, [lastModel], true); }, focusOn,
     fitModels: models => { frame(models[0], models); dirty = true; }, screenPosOf, ids: () => [...byId.keys()],
     // Camera sync for the before/after slider: the other viewer follows this one.
     followCamera(other) { other.onCamera(() => { if (syncing) return; syncing = true; const s = other.camState(); camera.position.copy(s.pos); controls.target.copy(s.tgt); controls.update(); dirty = true; syncing = false; }); },

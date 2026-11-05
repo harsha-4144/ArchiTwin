@@ -69,3 +69,25 @@
 .band .tablewrap{margin-top:var(--s-4)}
 .band p{color:#fff6e3}
 .flag-line{font-weight:600}
+
+/* Designs gallery */
+.filters{display:flex;flex-wrap:wrap;gap:var(--s-4);align-items:flex-start;margin-bottom:var(--s-4)}
+.filters fieldset{border:1px solid var(--line-soft);border-radius:var(--r-sm);padding:var(--s-2) var(--s-4) var(--s-3);margin:0;min-width:0}
+.filters legend{font-weight:600;color:var(--teal-deep);padding-inline:var(--s-2)}
+.filters .opts{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4)}
+.filters label{display:inline-flex;align-items:center;gap:var(--s-2);min-height:32px;cursor:pointer}
+.filters input{width:18px;height:18px;accent-color:var(--teal)}
+.filters .btn{align-self:center}
+.gallery{display:grid;gap:var(--s-5);grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1100px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.dcard{display:flex;flex-direction:column}
+.dcard .thumb{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:var(--r-sm);background:var(--sand);margin:0 0 var(--s-3);border:1px solid var(--line-soft)}
+.dcard h3{margin-bottom:var(--s-1)}
+.chips{list-style:none;display:flex;flex-wrap:wrap;gap:var(--s-2);margin:var(--s-2) 0;padding:0;max-width:none}
+.chips li{margin:0;background:var(--sand);border-radius:999px;padding:2px var(--s-3);font-size:var(--t-small)}
+.dcard .res{margin:var(--s-2) 0;font-weight:600}
+.dcard .btn{align-self:flex-start;margin-top:auto}
+.dcard .pushdown{margin-top:auto;padding-top:var(--s-2)}
+.differs-row td:last-child{font-weight:600;color:var(--teal-deep)}
+.dcard[hidden],#f-empty[hidden]{display:none}

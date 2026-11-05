@@ -1,7 +1,7 @@
 // util.mjs - shared display helpers and data access. No engineering maths here (see calc.mjs).
 import { generateBuilding } from '../building.mjs';
 import { checkAll, summarize } from '../calc.mjs';
-import { PRESETS } from '../presets.mjs';
+import { resolvePreset } from '../presets.mjs';
 
 export const $ = (s, root = document) => root.querySelector(s);
 export const el = (tag, attrs = {}, ...kids) => {
@@ -12,8 +12,8 @@ export const el = (tag, attrs = {}, ...kids) => {
 export const fmt = (v, d = 2) => Number(v).toLocaleString('en-IN', { maximumFractionDigits: d, minimumFractionDigits: d });
 export const inr = v => '₹' + Math.round(v).toLocaleString('en-IN');
 
-// Preset ids accept 'two-storey' as well as 'twostorey'.
-export const findPreset = id => { const k = String(id || '').toLowerCase().replace(/[^a-z]/g, ''); return PRESETS.find(p => p.id === k || p.name.toLowerCase().replace(/[^a-z]/g, '').startsWith(k) && k.length > 3); };
+// Preset slugs accept the old names too (twostorey, small, hall, shed); see presets.mjs.
+export const findPreset = resolvePreset;
 
 // Same pipeline the studio uses: params -> building -> beam check -> summary.
 export function analyse(params) {

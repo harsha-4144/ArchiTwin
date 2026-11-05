@@ -26,7 +26,7 @@ $('#worked').replaceChildren(
     el('tbody', {}, ...rows.map(({ label, r }) => el('tr', {}, el('th', { scope: 'row', text: label }), el('td', { class: 'num', text: fmt(r.deflectionMm) + ' mm' }), el('td', { class: 'num', text: fmt(r.limitMm) + ' mm' }),
       el('td', { class: 'num', text: fmt(r.ratio * 100, 0) + '%' }), el('td', {}, statusChip(r.pass ? 'pass' : 'fail'))))))),
   el('p', { class: 'worked-note', text: 'Depth works because it is cubed in I. Steel works because its E is much larger than timber. Try both in the studio.' }),
-  el('p', {}, el('a', { href: '/studio?preset=two-storey', text: 'Try these fixes in the studio' })));
+  el('p', {}, el('a', { href: '/studio?preset=twin-gable', text: 'Try these fixes in the studio' })));
 
 // Glossary
 const TERMS = [

@@ -199,3 +199,4 @@ details.fold>summary h2{margin-bottom:var(--s-3)}
 #split:hover .grip,#split.drag .grip{transform:scale(1.08)}
 #split:focus-visible{outline:none}
 #split:focus-visible .grip{outline:3px solid var(--focus);outline-offset:3px}
+.msg.decorative{background:var(--sand);border-left:4px solid var(--brass,#b8893a)}

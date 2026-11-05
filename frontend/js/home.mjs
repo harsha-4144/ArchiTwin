@@ -2,6 +2,7 @@
 import { createViewer } from '../viewer.mjs';
 import { generateBuilding } from '../building.mjs';
 import { PRESETS } from '../presets.mjs';
+import { generateArchitecture } from '../architecture.mjs';
 import { HOUSE_SVG, ICONS } from './icons.mjs';
 import { initReveal } from './reveal.mjs';
 
@@ -18,9 +19,10 @@ function fallback() {
 }
 
 try {
-  const preset = PRESETS.find(p => p.id === 'twostorey');
+  const preset = PRESETS.find(p => p.id === 'twin-gable');
   const viewer = createViewer(stage, () => {});
-  viewer.setModel(generateBuilding(preset.params), { layer: 'architecture' });
+  const house = generateBuilding(preset.params);
+  viewer.setModel(house, { layer: 'architecture', palette: preset.palette, features: generateArchitecture(preset.params, house, preset.features) });
   viewer.controls.enableZoom = false;                 // let the page scroll over the house
   viewer.controls.enablePan = false;
   stage.querySelector('canvas').style.touchAction = 'pan-y';

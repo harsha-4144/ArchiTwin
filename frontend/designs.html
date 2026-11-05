@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designs | ArchiTwin</title>
 <meta name="description" content="Starting designs, your saved designs, and a side-by-side comparison.">
+<script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
 <link rel="stylesheet" href="/css/tokens.css">
 <link rel="stylesheet" href="/css/site.css">
 <link rel="stylesheet" href="/css/pages.css">
@@ -14,12 +15,20 @@
 <main id="main">
   <section class="page-head"><div class="container wide">
     <h1>Designs</h1>
-    <p class="lead">Start from a ready-made building, open one you saved, or put two side by side to see what changed.</p>
+    <p class="lead">Start from one of six ready-made houses, open one you saved, or put two side by side to see what changed.</p>
   </div></section>
 
   <section class="container wide section tight" aria-labelledby="pre-h">
     <h2 id="pre-h" class="h-badge"><span class="badge" aria-hidden="true">1</span>Starting designs</h2>
-    <div class="grid cols-4" id="presets"></div>
+    <form class="filters" id="filters" aria-label="Filter starting designs">
+      <fieldset><legend>Floors</legend><div id="f-floors" class="opts"></div></fieldset>
+      <fieldset><legend>Roof</legend><div id="f-roof" class="opts"></div></fieldset>
+      <fieldset><legend>Material</legend><div id="f-material" class="opts"></div></fieldset>
+      <button type="button" class="btn btn-secondary" id="f-reset">Clear filters</button>
+    </form>
+    <p class="muted" id="f-count" role="status" aria-live="polite"></p>
+    <div class="gallery" id="presets"></div>
+    <div id="f-empty" class="card" hidden><p>No starting design matches these filters.</p><button type="button" class="btn btn-secondary" id="f-empty-reset">Clear filters</button></div>
   </section>
 
   <section class="container wide section tight" aria-labelledby="sav-h">
