@@ -43,7 +43,7 @@ test('diffComponents flags changed size, material and count', () => {
   assert.equal(bh.modified.size, nBeams);
   assert.ok([...bh.modified].every(id => id.startsWith('beam-')));
   const fl = C.diffComponents(a.components, generateBuilding({ ...DEFAULT_PARAMS, floors: 2 }).components);
-  assert.ok([...fl.original].every(id => id === 'roof')); /* roof moves up: a position change */ assert.ok(fl.modified.size > 0 && [...fl.modified].some(id => id.startsWith('col-f1')));
+  assert.deepEqual([...fl.original], ['roof']); /* exactly the roof differs: it moves up, a position change */ assert.ok(fl.modified.size > 0 && [...fl.modified].some(id => id.startsWith('col-f1')));
   const m = C.diffComponents(a.components, generateBuilding({ ...DEFAULT_PARAMS, material: 'steel' }).components);
   assert.ok(m.modified.size > 0 && !m.modified.has('slab-f0'));
 });

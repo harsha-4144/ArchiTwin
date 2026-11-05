@@ -26,3 +26,6 @@ backend/ (FastAPI + SQLite)  frontend/ (Three.js, plain JS)  prototype/ (earlier
 
 ## Tests
 Backend: `.venv/bin/python -m pytest`. Frontend: `node --test` from the repo root (not `node --test frontend/tests`, which fails on Node 22). Both must pass before every commit.
+
+## Protect the maths
+Tests A, B and C (4.40, 1.64 and 5.78 mm) and the building generator count tests are the answer key. Never change them. Never skip, delete or loosen any test. If a test fails, report it instead of editing the test or the expected value.
