@@ -12,7 +12,7 @@ A browser app for architecture students. Pick a small building, change its param
 
 ## Install and run (fresh clone)
 ```
-git clone <repo-url> adt && cd adt
+git clone https://github.com/harsha-4144/ArchiTwin.git && cd ArchiTwin
 ./run.sh        # Linux / macOS / WSL
 ```
 The first run creates `.venv` and installs the dependencies, then starts the server. Open http://localhost:8000. The SQLite file `backend/adt.db` is created automatically (to use another path, `export ADT_DB=/path/x.db` before `./run.sh`; a `.env` file is not read, see `.env.example`). Stop with Ctrl+C.
@@ -54,6 +54,9 @@ If anything fails, open `prototype/digital-twin-simulator.html` directly in a br
 - Caps: 2 floors and 3x3 bays. One uniform load for the whole building.
 - Single local user: no login, no blueprint upload.
 - Designs saved by the backend are not edited in place; save under a new name instead.
+- Windows are not individually clickable: they are openings in a wall, and clicking the wall lists its door and window sizes.
+- `run.bat` is untested on Windows; use WSL (`./run.sh`) on Windows.
+- In the Architecture layer a click can hit a wall or roof before the beams behind it; switch to the Structure layer to pick frame parts.
 
 ## Open item O6
 Material values (modulus, density, cost in rupees) are rounded assumptions. Citing a published source for them is still **open**.
