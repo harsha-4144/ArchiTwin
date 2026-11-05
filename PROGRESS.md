@@ -26,3 +26,6 @@
 - Tests A/B/C within 0.01 mm, trend, totals, bad-input tests: 9 pass via `node --test frontend/tests/*.test.mjs`; pytest 17 pass.
 - Deviation: plan's `node --test frontend/tests` fails on Node 22 (MODULE_NOT_FOUND); the glob form is used everywhere instead.
 - Assumption: slabs are always concrete (plan: "concrete slab of 120 mm").
+### Stage 3: Building generator — gate PASS
+- Counts match formulas for 5+ parameter sets; total weight = sum of parts. node 21/21 pass, pytest 17 pass.
+- Assumptions: validateParams throws (no clamping); doors/windows stored as `openings` on walls (not separate components); doors on floor 0 only; one partition wall per floor; one roof component. Hidden floors (floor_visible) are currently omitted from components; stage 4 should make visibility a view-only concern if it affects totals unexpectedly.
